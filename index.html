@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worship PDC</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .admin-controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .song {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin-bottom: 15px;
+    }
+    .song h3 {
+      margin: 0;
+      color: #444;
+    }
+    button {
+      margin: 5px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-edit { background-color: #ffc107; color: white; }
+    .btn-delete { background-color: #dc3545; color: white; }
+    .btn-login { background-color: #007bff; color: white; }
+    .btn-logout { background-color: #6c757d; color: white; }
+    a { color: #007bff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>🎵 Worship PDC</h1>
+
+  <div class="admin-controls">
+    <button id="loginBtn" class="btn-login">Iniciar sesión (Admin)</button>
+    <button id="logoutBtn" class="btn-logout" style="display:none;">Cerrar sesión</button>
+  </div>
+
+  <div id="songsList"></div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    // Configuración Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhWpUt9cfxa21T8ijfUCIJuApWBBaBUJQ",
+      authDomain: "worship-pdc.firebaseapp.com",
+      projectId: "worship-pdc",
+      storageBucket: "worship-pdc.appspot.com",
+      messagingSenderId: "132891019857",
+      appId: "1:132891019857:web:3d72cfe959a8d14cdf4670"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+    const provider = new GoogleAuthProvider();
+
+    const songsList = document.getElementById("songsList");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    let isAdmin = false;
+    const adminEmail = "morales.moises78@gmail.com"; // <-- cambia esto por tu correo
+
+    // Mostrar canciones
+    async function loadSongs() {
+      songsList.innerHTML = "";
+      const querySnapshot = await getDocs(collection(db, "canciones"));
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const div = document.createElement("div");
+        div.classList.add("song");
+        div.innerHTML = `
+          <h3>${data.fileName || "Sin título"}</h3>
+          <p><strong>Fecha:</strong> ${data.date || "N/A"}</p>
+          <p><strong>Acordes:</strong> ${data.chords || "N/A"}</p>
+          <p><a href="${data.fileURL}" target="_blank">📄 Ver PDF</a></p>
+          <p><a href="${data.video}" target="_blank">🎬 Ver video</a></p>
+          ${
+            isAdmin
+              ? `<button class="btn-edit" onclick="editSong('${docSnap.id}')">Editar</button>
+                 <button class="btn-delete" onclick="deleteSong('${docSnap.id}')">Eliminar</button>`
+              : ""
+          }
+        `;
+        songsList.appendChild(div);
+      });
+    }
+
+    // Función de eliminar (solo admin)
+    window.deleteSong = async function (id) {
+      if (!isAdmin) return;
+      if (confirm("¿Seguro que quieres eliminar esta canción?")) {
+        await deleteDoc(doc(db, "canciones", id));
+        loadSongs();
+      }
+    };
+
+    // (placeholder) Editar
+    window.editSong = function (id) {
+      alert("Función de edición en desarrollo para ID: " + id);
+    };
+
+    // Login con Google
+    loginBtn.addEventListener("click", async () => {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      if (user.email === adminEmail) {
+        isAdmin = true;
+        alert("Bienvenido administrador: " + user.email);
+      } else {
+        alert("Acceso solo para administradores.");
+        await signOut(auth);
+      }
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+      loadSongs();
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      isAdmin = false;
+      loginBtn.style.display = "inline-block";
+      logoutBtn.style.display = "none";
+      loadSongs();
+    });
+
+    // Cargar canciones al iniciar
+    loadSongs();
+  </script>
+</body>
+</html>
