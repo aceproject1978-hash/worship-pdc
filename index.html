@@ -85,7 +85,7 @@ button:hover { background-color: #357ABD; }
   cursor: pointer;
   transition: background-color 0.3s ease;
   display: block;
-  margin: 5px auto; /* Centrado */
+  margin: 5px auto;
 }
 .assign-green:hover {
   background-color: #218838;
@@ -149,7 +149,6 @@ a:hover { text-decoration: underline; }
 }
 #loginBtn, #logoutBtn { position: absolute; top: 15px; right: 25px; }
 
-/* Modal */
 #assignModal {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -234,7 +233,6 @@ td:nth-child(4) {
   <div id="calendarContainer"></div>
 </div>
 
-<!-- Modal -->
 <div id="assignModal">
   <div id="assignContent">
     <h3>Asignar Músicos</h3>
@@ -251,175 +249,6 @@ const USERNAME = "ADMINPDC";
 const PASSWORD = "worship1039";
 let loggedIn = localStorage.getItem("logueado") === "true";
 
-const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOCES","VOZ LIDER","BAJO"];
-const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
-
-const assignBtn = document.getElementById("assignBtn");
-const assignModal = document.getElementById("assignModal");
-const assignFields = document.getElementById("assignFields");
-const saveAssign = document.getElementById("saveAssign");
-const closeAssign = document.getElementById("closeAssign");
-const lineForm = document.getElementById("lineForm");
-const calendarContainer = document.getElementById("calendarContainer");
-
-function openAssignModal(){
-  assignFields.innerHTML="";
-  instruments.forEach(instr=>{
-    const div=document.createElement("div");
-    div.classList.add("assign-item");
-    div.innerHTML=`<label>${instr}:</label>
-    <select id="sel-${instr.replace(/\s+/g,'_')}">
-      <option value="">-- Seleccionar --</option>
-      ${names.map(n=>`<option value="${n}">${n}</option>`).join('')}
-    </select>`;
-    assignFields.appendChild(div);
-  });
-  assignModal.style.display="flex";
-}
-
-assignBtn.onclick=()=>{if(loggedIn)openAssignModal();else alert("Debes iniciar sesión como ADMINPDC");};
-closeAssign.onclick=()=>assignModal.style.display="none";
-
-saveAssign.onclick=()=>{
-  const selected={};
-  instruments.forEach(instr=>{
-    const sel=document.getElementById(`sel-${instr.replace(/\s+/g,'_')}`);
-    selected[instr]=sel.value;
-  });
-  localStorage.setItem("asignaciones",JSON.stringify(selected));
-  assignModal.style.display="none";
-  alert("Asignaciones guardadas correctamente.");
-};
-
-function getAsignacionesTexto(){
-  const asign=JSON.parse(localStorage.getItem("asignaciones")||"{}");
-  return Object.entries(asign).filter(([i,n])=>n&&n.trim()!=="").map(([i,n])=>`${i}: ${n}`).join('\n');
-}
-
-function extractVideoID(url){
-  const patterns=[/youtu\.be\/([^?&]+)/,/youtube\.com\/watch\?v=([^?&]+)/,/youtube\.com\/embed\/([^?&]+)/];
-  for(const p of patterns){const m=url.match(p);if(m&&m[1])return m[1];}
-  return null;
-}
-
-function renderSongs(){
-  calendarContainer.innerHTML="";
-  const songs=JSON.parse(localStorage.getItem("songs")||"[]");
-  songs.forEach(song=>{
-    addSongToDOM(song,false);
-  });
-}
-
-function addSongToDOM(song,save=true){
-  let block=document.querySelector(`.calendar-block[data-date='${song.date}']`);
-  if(!block){
-    block=document.createElement("div");
-    block.classList.add("calendar-block");
-    block.dataset.date=song.date;
-    block.innerHTML=`<div class="calendar-date">${song.date}</div>
-      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músico</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
-    calendarContainer.appendChild(block);
-  }
-
-  const tbody=block.querySelector("tbody");
-  const tr=document.createElement("tr");
-
-  const tdVideo=document.createElement("td");
-  if(song.video){
-    const id=extractVideoID(song.video);
-    tdVideo.innerHTML=id?`<iframe src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`:"Link no válido";
-  }
-
-  const tdFile=document.createElement("td");
-  if(song.fileName) tdFile.innerHTML=`<a href="${song.fileURL}" target="_blank">${song.fileName}</a>`;
-
-  const tdChords=document.createElement("td");
-  tdChords.textContent=song.chords;
-
-  const tdNote=document.createElement("td");
-  tdNote.textContent=getAsignacionesTexto();
-
-  tr.append(tdVideo,tdFile,tdChords,tdNote);
-
-  if(loggedIn){
-    const tdActions=document.createElement("td");
-    tdActions.classList.add("actions");
-    const del=document.createElement("button");
-    del.textContent="Eliminar";
-    del.classList.add("delete");
-    del.onclick=()=>{
-      if(confirm("¿Eliminar esta canción?")){
-        const songs=JSON.parse(localStorage.getItem("songs")||"[]").filter(s=>!(s.video===song.video&&s.date===song.date));
-        localStorage.setItem("songs",JSON.stringify(songs));
-        renderSongs();
-      }
-    };
-    tdActions.append(del);
-    tr.append(tdActions);
-  }
-
-  tbody.append(tr);
-
-  if(save){
-    const songs=JSON.parse(localStorage.getItem("songs")||"[]");
-    songs.push(song);
-    localStorage.setItem("songs",JSON.stringify(songs));
-  }
-}
-
-/* LOGIN */
-const loginBtn=document.getElementById("loginBtn");
-const logoutBtn=document.getElementById("logoutBtn");
-const loginSection=document.getElementById("loginSection");
-const confirmLogin=document.getElementById("confirmLogin");
-const cancelLogin=document.getElementById("cancelLogin");
-const errorMsg=document.getElementById("errorMsg");
-
-loginBtn.onclick=()=>{loginSection.classList.remove("hidden");loginBtn.classList.add("hidden");};
-cancelLogin.onclick=()=>{loginSection.classList.add("hidden");loginBtn.classList.remove("hidden");};
-confirmLogin.onclick=()=>{
-  const user=document.getElementById("username").value.trim();
-  const pass=document.getElementById("password").value.trim();
-  if(user===USERNAME && pass===PASSWORD){
-    loggedIn=true;
-    localStorage.setItem("logueado","true");
-    loginSection.classList.add("hidden");
-    logoutBtn.classList.remove("hidden");
-    lineForm.classList.remove("hidden");
-  } else {
-    errorMsg.textContent="Usuario o contraseña incorrectos.";
-  }
-};
-logoutBtn.onclick=()=>{
-  loggedIn=false;
-  localStorage.setItem("logueado","false");
-  logoutBtn.classList.add("hidden");
-  loginBtn.classList.remove("hidden");
-  lineForm.classList.add("hidden");
-};
-
-/* Agregar canción */
-document.getElementById("addLine").onclick=()=>{
-  const url=document.getElementById("videoURL").value.trim();
-  const fileInput=document.getElementById("fileUpload");
-  const chords=document.getElementById("chords").value.trim();
-  const date=document.getElementById("customDate").value;
-  if(!date)return alert("Por favor, elige una fecha.");
-
-  let fileData={};
-  if(fileInput.files.length>0){
-    const file=fileInput.files[0];
-    fileData={fileName:file.name,fileURL:URL.createObjectURL(file)};
-  }
-
-  const song={video:url,chords,date,...fileData};
-  addSongToDOM(song);
-  document.querySelectorAll("#videoURL,#fileUpload,#chords,#customDate").forEach(i=>i.value="");
-};
-
-renderSongs();
-if(loggedIn){logoutBtn.classList.remove("hidden");lineForm.classList.remove("hidden");}
-else loginBtn.classList.remove("hidden");
-</script>
-</body>
-</html>
+// ✅ Aquí se actualizan los instrumentos y nombres
+const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
+const names = ["Rafael","Moises","Ronald","Nelson","Jose","Josue","Sebastian","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
