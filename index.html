@@ -148,6 +148,8 @@ logoutBtn.onclick = () => { loggedIn = false; logoutBtn.classList.add("hidden");
 // ---------- ASIGNACIÓN ----------
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
 const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
+let selectedMusicians = {};
+
 const assignBtn = document.getElementById("assignBtn");
 const assignModal = document.getElementById("assignModal");
 const assignFields = document.getElementById("assignFields");
@@ -162,15 +164,23 @@ function openAssignModal() {
     div.innerHTML = `<label>${instr}:</label>
       <select id="sel-${instr.replace(/\s+/g,'_')}">
         <option value="">-- Seleccionar --</option>
-        ${names.map(n=>`<option value="${n}">${n}</option>`).join('')}
+        ${names.map(n=>`<option value="${n}" ${selectedMusicians[instr]===n?'selected':''}>${n}</option>`).join('')}
       </select>`;
     assignFields.appendChild(div);
   });
   assignModal.style.display = "flex";
 }
+
 assignBtn.onclick = () => { if (loggedIn) openAssignModal(); else alert("Debes iniciar sesión como ADMINPDC"); };
 closeAssign.onclick = () => assignModal.style.display = "none";
-saveAssign.onclick = () => { assignModal.style.display = "none"; alert("Asignaciones guardadas correctamente."); };
+saveAssign.onclick = () => {
+  instruments.forEach(instr=>{
+    const val=document.getElementById(`sel-${instr.replace(/\s+/g,'_')}`).value;
+    if(val) selectedMusicians[instr]=val; else delete selectedMusicians[instr];
+  });
+  assignModal.style.display="none";
+  alert("Asignaciones guardadas correctamente.");
+};
 
 // ---------- FIRESTORE Y GOFILE ----------
 async function uploadToGoFile(file) {
@@ -188,7 +198,7 @@ async function addSongToDOM(song, id) {
     block.classList.add("calendar-block");
     block.dataset.date = song.date;
     block.innerHTML = `<div class="calendar-date">${song.date}</div>
-      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músico</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
+      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
     calendarContainer.appendChild(block);
   }
 
@@ -208,7 +218,9 @@ async function addSongToDOM(song, id) {
   tdChords.textContent = song.chords;
 
   const tdNote = document.createElement("td");
-  tdNote.textContent = song.musicos || "";
+  tdNote.textContent = song.musicos
+    ? Object.entries(song.musicos).map(([k,v])=>`${k}: ${v}`).join('\n')
+    : "";
 
   tr.append(tdVideo, tdFile, tdChords, tdNote);
 
@@ -253,12 +265,20 @@ document.getElementById("addLine").onclick = async () => {
       fileData = { fileName: file.name, fileURL };
     }
 
-    await addDoc(collection(db, "songs"), { video: url, chords, date, ...fileData });
+    await addDoc(collection(db, "songs"), {
+      video: url,
+      chords,
+      date,
+      musicos: selectedMusicians,
+      ...fileData
+    });
+
     alert("✅ Canción agregada correctamente.");
     document.getElementById("videoURL").value = "";
     document.getElementById("fileUpload").value = "";
     document.getElementById("chords").value = "";
     document.getElementById("customDate").value = "";
+    selectedMusicians = {};
     renderSongs();
   } catch (e) {
     console.error("Error al guardar:", e);
