@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Calendario Worship PDC</title>
+<style>
+/* Mantiene tu estilo original */
+body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px;}
+h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5);user-select:none;}
+.hidden{display:none;}
+form,.calendar-block{width:100%;max-width:1100px;margin:0 auto 15px auto;}
+table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed;}
+table th:nth-child(1),table td:nth-child(1){width:18%;}
+table th:nth-child(2),table td:nth-child(2){width:28%;}
+table th:nth-child(3),table td:nth-child(3){width:12%;}
+table th:nth-child(4),table td:nth-child(4){width:25%;}
+table th:nth-child(5),table td:nth-child(5){width:10%;}
+table th:nth-child(6),table td:nth-child(6){width:7%;}
+th,td{border:1px solid #ccc;padding:5px 6px;text-align:center;vertical-align:middle;font-size:0.9em;}
+th{background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;font-weight:600;}
+input[type=text],input[type=url],input[type=date],input[type=password],input[type=file]{width:95%;padding:4px 5px;border-radius:4px;border:1px solid #bbb;font-size:0.85em;box-sizing:border-box;}
+button{background-color:#4A90E2;border:none;color:white;padding:5px 10px;font-size:0.85em;font-weight:600;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;}
+button:hover{background-color:#357ABD;}
+.assign-green{background-color:#28a745;color:white;font-weight:600;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;display:block;margin:5px auto;}
+.assign-green:hover{background-color:#218838;}
+iframe{max-width:180px;height:90px;display:block;margin:4px auto;border-radius:6px;}
+a{word-break:break-word;display:inline-block;font-size:0.8em;color:#274D87;text-decoration:none;}
+a:hover{text-decoration:underline;}
+.actions button{margin:2px 4px;font-size:0.75em;padding:3px 6px;border-radius:4px;}
+.actions .edit{background-color:#F0AD4E;}
+.actions .delete{background-color:#D9534F;}
+#loginSection{max-width:360px;margin:50px auto;padding:20px;border-radius:10px;background:rgba(255,255,255,0.95);box-shadow:0 6px 20px rgba(0,0,0,0.15);border:1px solid rgba(74,144,226,0.3);text-align:center;}
+#loginSection img{width:150px;margin-bottom:10px;}
+#loginSection h2{margin-bottom:10px;color:#4A90E2;text-align:center;}
+#errorMsg{color:#D9534F;text-align:center;margin-bottom:8px;}
+.calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);}
+.calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em;}
+#loginBtn,#logoutBtn{position:absolute;top:15px;right:25px;}
+#assignModal,#searchModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000;}
+#assignContent,#searchContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);}
+#assignContent{width:280px;}
+#searchContent{width:500px;max-height:80vh;overflow-y:auto;}
+#assignContent h3,#searchContent h3{color:#4A90E2;text-align:center;margin-bottom:8px;}
+.assign-item{margin:6px 0;display:flex;flex-direction:column;}
+.assign-item label{font-weight:bold;margin-bottom:3px;}
+.assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;}
+td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
+.video-result{display:flex;align-items:center;gap:10px;border-bottom:1px solid #ccc;padding:8px;}
+.video-result iframe{width:120px;height:70px;}
+.video-result button{background:#28a745;padding:4px 8px;font-size:0.75em;}
+</style>
+</head>
+<body>
+<h1>Calendario Worship PDC</h1>
+<button id="loginBtn">Login</button>
+<button id="logoutBtn" class="hidden">Cerrar sesión</button>
+
+<div id="loginSection" class="hidden">
+  <img src="imagen1.jpg" alt="Logo PDC" />
+  <h2>Inicio de Sesión</h2>
+  <div id="errorMsg"></div>
+  <input type="text" id="username" placeholder="Usuario" /><br><br>
+  <input type="password" id="password" placeholder="Contraseña" /><br><br>
+  <button id="confirmLogin">Ingresar</button>
+  <button id="cancelLogin">Cancelar</button>
+</div>
+
+<div id="mainContent">
+  <form id="lineForm" class="hidden">
+    <table>
+      <tr>
+        <th>Video YouTube</th>
+        <th>Cifrado PDF</th>
+        <th>Tono</th>
+        <th>Músicos</th>
+        <th>Fecha</th>
+        <th class="action-header">Acción</th>
+      </tr>
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <input type="url" id="videoURL" placeholder="https://..."/>
+            <button type="button" id="searchVideoBtn">Buscar</button>
+          </div>
+        </td>
+        <td><input type="file" id="fileUpload" accept="application/pdf"/></td>
+        <td><input type="text" id="chords" placeholder="Ej: G - D - Em"/></td>
+        <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
+        <td><input type="date" id="customDate"/></td>
+        <td class="action-cell"><button type="button" id="addLine">Agregar</button></td>
+      </tr>
+    </table>
+  </form>
+
+  <h2 style="text-align:center;color:#4A90E2;">Lista multimedia</h2>
+  <div id="calendarContainer"></div>
+</div>
+
+<!-- Modal Asignar -->
+<div id="assignModal">
+  <div id="assignContent">
+    <h3>Asignar Músicos</h3>
+    <div id="assignFields"></div>
+    <div style="text-align:center;margin-top:10px;">
+      <button id="saveAssign">Guardar</button>
+      <button id="closeAssign">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Buscar Video -->
+<div id="searchModal">
+  <div id="searchContent">
+    <h3>Buscar Video</h3>
+    <div id="videoList"></div>
+    <div style="text-align:center;margin-top:10px;">
+      <button id="closeSearch">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDhWpUt9cfxa21T8ijfUCIJuApWBBaBUJQ",
+  authDomain: "worship-pdc.firebaseapp.com",
+  projectId: "worship-pdc",
+  storageBucket: "worship-pdc.appspot.com",
+  messagingSenderId: "132891019857",
+  appId: "1:132891019857:web:3d72cfe959a8d14cdf4670"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// LOGIN
+const USERNAME = "ADMINPDC";
+const PASSWORD = "worship1039";
+let loggedIn = false;
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const loginSection = document.getElementById("loginSection");
+const confirmLogin = document.getElementById("confirmLogin");
+const cancelLogin = document.getElementById("cancelLogin");
+const errorMsg = document.getElementById("errorMsg");
+const lineForm = document.getElementById("lineForm");
+const calendarContainer = document.getElementById("calendarContainer");
+
+loginBtn.onclick = ()=>{loginSection.classList.remove("hidden");loginBtn.classList.add("hidden");};
+cancelLogin.onclick = ()=>{loginSection.classList.add("hidden");loginBtn.classList.remove("hidden");};
+confirmLogin.onclick = ()=>{
+  const user=document.getElementById("username").value.trim();
+  const pass=document.getElementById("password").value.trim();
+  if(user===USERNAME && pass===PASSWORD){
+    loggedIn=true;
+    loginSection.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+    lineForm.classList.remove("hidden");
+    renderSongs();
+  } else errorMsg.textContent="Usuario o contraseña incorrectos.";
+};
+logoutBtn.onclick=()=>{loggedIn=false;logoutBtn.classList.add("hidden");loginBtn.classList.remove("hidden");lineForm.classList.add("hidden");renderSongs();};
+
+// Asignar
+const instruments=["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
+const names=["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
+let selectedMusicians={};
+const assignBtn=document.getElementById("assignBtn");
+const assignModal=document.getElementById("assignModal");
+const assignFields=document.getElementById("assignFields");
+const saveAssign=document.getElementById("saveAssign");
+const closeAssign=document.getElementById("closeAssign");
+
+function openAssignModal(){
+  assignFields.innerHTML="";
+  instruments.forEach(instr=>{
+    const div=document.createElement("div");
+    div.classList.add("assign-item");
+    div.innerHTML=`<label>${instr}:</label>
+      <select id="sel-${instr.replace(/\s+/g,'_')}">
+        <option value="">-- Seleccionar --</option>
+        ${names.map(n=>`<option value="${n}" ${selectedMusicians[instr]===n?'selected':''}>${n}</option>`).join('')}
+      </select>`;
+    assignFields.appendChild(div);
+  });
+  assignModal.style.display="flex";
+}
+assignBtn.onclick=()=>{if(loggedIn)openAssignModal();else alert("Debes iniciar sesión");};
+closeAssign.onclick=()=>assignModal.style.display="none";
+saveAssign.onclick=()=>{
+  instruments.forEach(instr=>{
+    const val=document.getElementById(`sel-${instr.replace(/\s+/g,'_')}`).value;
+    if(val)selectedMusicians[instr]=val;else delete selectedMusicians[instr];
+  });
+  assignModal.style.display="none";
+  alert("Asignaciones guardadas correctamente.");
+};
+
+// Buscar video
+const searchVideoBtn=document.getElementById("searchVideoBtn");
+const searchModal=document.getElementById("searchModal");
+const videoList=document.getElementById("videoList");
+const closeSearch=document.getElementById("closeSearch");
+
+searchVideoBtn.onclick=async()=>{
+  searchModal.style.display="flex";
+  videoList.innerHTML="<p style='text-align:center;'>Cargando videos...</p>";
+  const snap=await getDocs(collection(db,"songs"));
+  videoList.innerHTML="";
+  snap.forEach(docSnap=>{
+    const song=docSnap.data();
+    if(song.video){
+      const idv=song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
+      const iframe=idv?`<iframe src='https://www.youtube.com/embed/${idv[1]}' frameborder='0'></iframe>`:"";
+      const div=document.createElement("div");
+      div.classList.add("video-result");
+      div.innerHTML=`${iframe}<div><p><strong>${song.date||''}</strong></p><p>${song.video}</p></div><button>Seleccionar</button>`;
+      div.querySelector("button").onclick=()=>{
+        document.getElementById("videoURL").value=song.video;
+        searchModal.style.display="none";
+      };
+      videoList.appendChild(div);
+    }
+  });
+};
+closeSearch.onclick=()=>searchModal.style.display="none";
+
+// Firestore y Gofile
+async function uploadToGoFile(file){
+  const formData=new FormData();
+  formData.append("file",file);
+  const response=await fetch("https://store1.gofile.io/uploadFile",{method:"POST",body:formData});
+  const result=await response.json();
+  return result.data.downloadPage;
+}
+
+async function addSongToDOM(song,id){
+  let block=document.querySelector(`.calendar-block[data-date='${song.date}']`);
+  if(!block){
+    block=document.createElement("div");
+    block.classList.add("calendar-block");
+    block.dataset.date=song.date;
+    block.innerHTML=`<div class="calendar-date">${song.date}</div>
+      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
+    calendarContainer.appendChild(block);
+  }
+  const tbody=block.querySelector("tbody");
+  const tr=document.createElement("tr");
+
+  const tdVideo=document.createElement("td");
+  if(song.video){
+    const idv=song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
+    tdVideo.innerHTML=idv?`<iframe src="https://www.youtube.com/embed/${idv[1]}" frameborder="0" allowfullscreen></iframe>`:"Link no válido";
+  }
+
+  const tdFile=document.createElement("td");
+  if(song.fileURL)tdFile.innerHTML=`<a href="${song.fileURL}" target="_blank">${song.fileName}</a>`;
+
+  const tdChords=document.createElement("td");
+  tdChords.textContent=song.chords;
+
+  const tdNote=document.createElement("td");
+  tdNote.textContent=song.musicos?Object.entries(song.musicos).map(([k,v])=>`${k}: ${v}`).join('\n'):"";
+
+  tr.append(tdVideo,tdFile,tdChords,tdNote);
+
+  if(loggedIn){
+    const tdActions=document.createElement("td");
+    tdActions.classList.add("actions");
+    const del=document.createElement("button");
+    del.textContent="Eliminar";
+    del.classList.add("delete");
+    del.onclick=async()=>{
+      if(confirm("¿Eliminar esta canción?")){
+        await deleteDoc(doc(db,"songs",id));
+        renderSongs();
+      }
+    };
+    tdActions.append(del);
+    tr.append(tdActions);
+  }
+  tbody.append(tr);
+}
+
+async function renderSongs(){
+  calendarContainer.innerHTML="";
+  const snap=await getDocs(collection(db,"songs"));
+  snap.forEach(docSnap=>addSongToDOM(docSnap.data(),docSnap.id));
+}
+
+document.getElementById("addLine").onclick=async()=>{
+  const url=document.getElementById("videoURL").value.trim();
+  const fileInput=document.getElementById("fileUpload");
+  const chords=document.getElementById("chords").value.trim();
+  const date=document.getElementById("customDate").value;
+  if(!date)return alert("Por favor, elige una fecha.");
+
+  try{
+    let fileData={};
+    if(fileInput.files.length>0){
+      const file=fileInput.files[0];
+      const fileURL=await uploadToGoFile(file);
+      fileData={fileName:file.name,fileURL};
+    }
+    await addDoc(collection(db,"songs"),{video:url,chords,date,musicos:selectedMusicians,...fileData});
+    alert("✅ Canción agregada correctamente.");
+    document.getElementById("videoURL").value="";
+    document.getElementById("fileUpload").value="";
+    document.getElementById("chords").value="";
+    document.getElementById("customDate").value="";
+    selectedMusicians={};
+    renderSongs();
+  }catch(e){console.error(e);alert("❌ Error: "+e.message);}
+};
+
+renderSongs();
+</script>
+</body>
+</html>
