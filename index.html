@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <title>Calendario Worship PDC</title>
-<!-- Tus estilos originales -->
 <style>
-/* (mantiene exactamente tus estilos) */
+/* ======= ESTILOS GENERALES ======= */
 body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px;}
 h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5);user-select:none;}
 .hidden{display:none;}
@@ -44,17 +43,7 @@ a:hover{text-decoration:underline;}
 .assign-item label{font-weight:bold;margin-bottom:3px;}
 .assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;}
 td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
-
-/* estilo del buscador */
-#searchInput {
-  width: 95%;
-  margin-top: 5px;
-  padding: 4px 5px;
-  border-radius: 4px;
-  border: 1px solid #bbb;
-  font-size: 0.85em;
-  display: none;
-}
+#searchInput{width:95%;margin-top:5px;padding:4px 5px;border-radius:4px;border:1px solid #bbb;font-size:0.85em;display:none;}
 </style>
 </head>
 <body>
@@ -115,81 +104,112 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+document.addEventListener("DOMContentLoaded", async () => {
+  // 🔹 Cargar Firebase de forma dinámica
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js");
+  const { getFirestore, collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDhWpUt9cfxa21T8ijfUCIJuApWBBaBUJQ",
-  authDomain: "worship-pdc.firebaseapp.com",
-  projectId: "worship-pdc",
-  storageBucket: "worship-pdc.appspot.com",
-  messagingSenderId: "132891019857",
-  appId: "1:132891019857:web:3d72cfe959a8d14cdf4670"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyDhWpUt9cfxa21T8ijfUCIJuApWBBaBUJQ",
+    authDomain: "worship-pdc.firebaseapp.com",
+    projectId: "worship-pdc",
+    storageBucket: "worship-pdc.appspot.com",
+    messagingSenderId: "132891019857",
+    appId: "1:132891019857:web:3d72cfe959a8d14cdf4670"
+  };
 
-// ---------- LOGIN ----------
-const USERNAME = "ADMINPDC";
-const PASSWORD = "worship1039";
-let loggedIn = false;
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const loginSection = document.getElementById("loginSection");
-const confirmLogin = document.getElementById("confirmLogin");
-const cancelLogin = document.getElementById("cancelLogin");
-const errorMsg = document.getElementById("errorMsg");
-const lineForm = document.getElementById("lineForm");
-const calendarContainer = document.getElementById("calendarContainer");
+  // ---------- LOGIN ----------
+  const USERNAME = "ADMINPDC";
+  const PASSWORD = "worship1039";
+  let loggedIn = false;
 
-loginBtn.onclick = () => { loginSection.classList.remove("hidden"); loginBtn.classList.add("hidden"); };
-cancelLogin.onclick = () => { loginSection.classList.add("hidden"); loginBtn.classList.remove("hidden"); };
-confirmLogin.onclick = () => {
-  const user = document.getElementById("username").value.trim();
-  const pass = document.getElementById("password").value.trim();
-  if (user === USERNAME && pass === PASSWORD) {
-    loggedIn = true;
-    loginSection.classList.add("hidden");
-    logoutBtn.classList.remove("hidden");
-    lineForm.classList.remove("hidden");
-    document.getElementById("toggleSearch").style.display = "inline-block";
-    renderSongs();
-  } else {
-    errorMsg.textContent = "Usuario o contraseña incorrectos.";
-  }
-};
-logoutBtn.onclick = () => { loggedIn = false; logoutBtn.classList.add("hidden"); loginBtn.classList.remove("hidden"); lineForm.classList.add("hidden"); document.getElementById("toggleSearch").style.display = "none"; renderSongs(); };
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginSection = document.getElementById("loginSection");
+  const confirmLogin = document.getElementById("confirmLogin");
+  const cancelLogin = document.getElementById("cancelLogin");
+  const errorMsg = document.getElementById("errorMsg");
+  const lineForm = document.getElementById("lineForm");
+  const calendarContainer = document.getElementById("calendarContainer");
+  const toggleSearch = document.getElementById("toggleSearch");
+  const searchInput = document.getElementById("searchInput");
 
-// ---------- BUSCADOR ----------
-const toggleSearch = document.getElementById("toggleSearch");
-const searchInput = document.getElementById("searchInput");
+  toggleSearch.style.display = "none"; // oculto si no está logueado
 
-toggleSearch.style.display = "none"; // oculto si no está logueado
+  loginBtn.onclick = () => { loginSection.classList.remove("hidden"); loginBtn.classList.add("hidden"); };
+  cancelLogin.onclick = () => { loginSection.classList.add("hidden"); loginBtn.classList.remove("hidden"); };
 
-toggleSearch.onclick = () => {
-  searchInput.style.display = searchInput.style.display === "none" ? "block" : "none";
-  searchInput.focus();
-};
-
-searchInput.addEventListener("input", async (e) => {
-  const query = e.target.value.toLowerCase();
-  if (!query) {
-    renderSongs();
-    return;
-  }
-  calendarContainer.innerHTML = "";
-  const querySnapshot = await getDocs(collection(db, "songs"));
-  let found = false;
-  querySnapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    if (data.video?.toLowerCase().includes(query)) {
-      addSongToDOM(data, docSnap.id);
-      found = true;
+  confirmLogin.onclick = () => {
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+    if (user === USERNAME && pass === PASSWORD) {
+      loggedIn = true;
+      loginSection.classList.add("hidden");
+      logoutBtn.classList.remove("hidden");
+      lineForm.classList.remove("hidden");
+      toggleSearch.style.display = "inline-block";
+      errorMsg.textContent = "";
+      renderSongs();
+    } else {
+      errorMsg.textContent = "Usuario o contraseña incorrectos.";
     }
-  });
-  if (!found) calendarContainer.innerHTML = "<p style='text-align:center;color:#999;'>No se encontraron videos con ese criterio.</p>";
-});
+  };
 
-// ---------- resto del código se mantiene igual (ASIGNACIÓN + FIRESTORE + renderSongs) ----------
-// (no se toca nada más de tu código)
+  logoutBtn.onclick = () => {
+    loggedIn = false;
+    logoutBtn.classList.add("hidden");
+    loginBtn.classList.remove("hidden");
+    lineForm.classList.add("hidden");
+    toggleSearch.style.display = "none";
+    renderSongs();
+  };
+
+  // ---------- BUSCADOR ----------
+  toggleSearch.onclick = () => {
+    searchInput.style.display = searchInput.style.display === "none" ? "block" : "none";
+    searchInput.focus();
+  };
+
+  searchInput.addEventListener("input", async (e) => {
+    const query = e.target.value.toLowerCase();
+    if (!query) {
+      renderSongs();
+      return;
+    }
+    calendarContainer.innerHTML = "";
+    const querySnapshot = await getDocs(collection(db, "songs"));
+    let found = false;
+    querySnapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data.video?.toLowerCase().includes(query)) {
+        addSongToDOM(data, docSnap.id);
+        found = true;
+      }
+    });
+    if (!found) calendarContainer.innerHTML = "<p style='text-align:center;color:#999;'>No se encontraron videos con ese criterio.</p>";
+  });
+
+  // ---------- FUNCIONES BASE ----------
+  function renderSongs() {
+    calendarContainer.innerHTML = "<p style='text-align:center;color:#666;'>Cargando canciones...</p>";
+  }
+
+  function addSongToDOM(data, id) {
+    const div = document.createElement("div");
+    div.classList.add("calendar-block");
+    div.innerHTML = `
+      <div class="calendar-date">${data.fecha || "Sin fecha"}</div>
+      <div style="padding:10px;">
+        <a href="${data.video}" target="_blank">${data.video}</a>
+        <p><strong>Tono:</strong> ${data.tono || "N/A"}</p>
+      </div>
+    `;
+    calendarContainer.appendChild(div);
+  }
+});
+</script>
+</body>
+</html>
