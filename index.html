@@ -220,11 +220,11 @@ td:nth-child(4) {
   </div>
 </div>
 
-<!-- ✅ FIREBASE -->
+<!-- ✅ FIREBASE FUNCIONAL -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDhWpUt9cfxa21T8ijfUCIJuApWBBaBUJQ",
@@ -358,19 +358,30 @@ document.getElementById("addLine").onclick = async () => {
   const fileInput = document.getElementById("fileUpload");
   const chords = document.getElementById("chords").value.trim();
   const date = document.getElementById("customDate").value;
+
   if (!date) return alert("Por favor, elige una fecha.");
 
-  let fileData = {};
-  if (fileInput.files.length > 0) {
-    const file = fileInput.files[0];
-    const fileRef = ref(storage, "pdfs/" + file.name);
-    await uploadBytes(fileRef, file);
-    const fileURL = await getDownloadURL(fileRef);
-    fileData = { fileName: file.name, fileURL };
-  }
+  try {
+    let fileData = {};
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const fileRef = ref(storage, "pdfs/" + file.name);
+      await uploadBytes(fileRef, file);
+      const fileURL = await getDownloadURL(fileRef);
+      fileData = { fileName: file.name, fileURL };
+    }
 
-  await addDoc(collection(db, "songs"), { video: url, chords, date, ...fileData });
-  renderSongs();
+    await addDoc(collection(db, "songs"), { video: url, chords, date, ...fileData });
+    alert("✅ Canción agregada correctamente.");
+    document.getElementById("videoURL").value = "";
+    document.getElementById("fileUpload").value = "";
+    document.getElementById("chords").value = "";
+    document.getElementById("customDate").value = "";
+    renderSongs();
+  } catch (e) {
+    console.error("Error al guardar:", e);
+    alert("❌ Error: " + e.message);
+  }
 };
 
 renderSongs();
