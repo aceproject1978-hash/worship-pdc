@@ -4,7 +4,167 @@
 <meta charset="UTF-8" />
 <title>Calendario Worship PDC</title>
 <style>
-/* ... (todo tu CSS original se mantiene igual) ... */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f9f9fb;
+  color: #333;
+  margin: 15px;
+}
+h1 {
+  text-align: center;
+  color: #4A90E2;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 2px rgba(74,144,226,0.5);
+  user-select: none;
+}
+.hidden { display: none; }
+form, .calendar-block {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto 15px auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 5px;
+  table-layout: fixed;
+}
+table th:nth-child(1), table td:nth-child(1) { width: 18%; }
+table th:nth-child(2), table td:nth-child(2) { width: 28%; }
+table th:nth-child(3), table td:nth-child(3) { width: 12%; }
+table th:nth-child(4), table td:nth-child(4) { width: 25%; }
+table th:nth-child(5), table td:nth-child(5) { width: 10%; }
+table th:nth-child(6), table td:nth-child(6) { width: 7%; }
+th, td {
+  border: 1px solid #ccc;
+  padding: 5px 6px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 0.9em;
+}
+th {
+  background: linear-gradient(135deg, #4A90E2, #357ABD);
+  color: white;
+  font-weight: 600;
+}
+input[type=text], input[type=url], input[type=date], input[type=password], input[type=file] {
+  width: 95%;
+  padding: 4px 5px;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  font-size: 0.85em;
+  box-sizing: border-box;
+}
+button {
+  background-color: #4A90E2;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.85em;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+button:hover { background-color: #357ABD; }
+.assign-green {
+  background-color: #28a745;
+  color: white;
+  font-weight: 600;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: block;
+  margin: 5px auto;
+}
+.assign-green:hover { background-color: #218838; }
+iframe {
+  max-width: 180px;
+  height: 90px;
+  display: block;
+  margin: 4px auto;
+  border-radius: 6px;
+}
+a {
+  word-break: break-word;
+  display: inline-block;
+  font-size: 0.8em;
+  color: #274D87;
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+.actions button {
+  margin: 2px 4px;
+  font-size: 0.75em;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+.actions .edit { background-color: #F0AD4E; }
+.actions .delete { background-color: #D9534F; }
+#loginSection {
+  max-width: 360px;
+  margin: 50px auto;
+  padding: 20px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  border: 1px solid rgba(74,144,226,0.3);
+  text-align: center;
+}
+#loginSection img { width: 150px; margin-bottom: 10px; }
+#loginSection h2 { margin-bottom: 10px; color: #4A90E2; text-align: center; }
+#errorMsg { color: #D9534F; text-align: center; margin-bottom: 8px; }
+.calendar-block {
+  border: 2px solid #4A90E2;
+  border-radius: 8px;
+  background: #fff;
+  margin-bottom: 15px;
+  box-shadow: 0 0 8px rgba(74,144,226,0.1);
+}
+.calendar-date {
+  background: #4A90E2;
+  color: white;
+  padding: 5px;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  text-align: center;
+  font-size: 1em;
+}
+#loginBtn, #logoutBtn { position: absolute; top: 15px; right: 25px; }
+#assignModal {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+#assignContent {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.25);
+  width: 280px;
+}
+#assignContent h3 {
+  color: #4A90E2;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.assign-item { margin: 6px 0; display: flex; flex-direction: column; }
+.assign-item label { font-weight: bold; margin-bottom: 3px; }
+.assign-item select {
+  padding: 4px; border: 1px solid #ccc; border-radius: 5px; font-size: 0.85em;
+}
+td:nth-child(4) {
+  white-space: pre-line;
+  text-align: left;
+  font-size: 0.9em;
+}
 </style>
 </head>
 <body>
@@ -60,28 +220,7 @@
   </div>
 </div>
 
-<!-- 🔥 CONFIGURACIÓN FIREBASE Y REGLAS
-Asegúrate de tener las reglas correctas en Firebase para permitir el acceso adecuado.
-
-📁 Firestore Rules:
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /songs/{songId} {
-      allow read, write: if true; // ⚠️ Solo para pruebas. Usa autenticación real después.
-    }
-  }
-}
-
-📁 Storage Rules:
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /pdfs/{allPaths=**} {
-      allow read, write: if true; // ⚠️ Solo para pruebas. Ajusta luego.
-    }
-  }
-}
--->
-
+<!-- ✅ FIREBASE FUNCIONAL -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
