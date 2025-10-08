@@ -36,21 +36,12 @@ a:hover{text-decoration:underline;}
 .calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);}
 .calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em;}
 #loginBtn,#logoutBtn{position:absolute;top:15px;right:25px;}
-/* Modal backdrops */
-#assignModal,#searchModal,#toneModal,#editModal{
-  position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;
-  align-items:center;justify-content:center;z-index:1000;padding:20px;box-sizing:border-box;
-}
-#assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;}
+#assignModal,#searchModal,#toneModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:1000;}
+#assignContent,#searchContent,#toneContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);}
 #assignContent{width:280px;}
 #searchContent{width:500px;max-height:80vh;overflow-y:auto;}
 #toneContent{width:300px;}
-/* EDIT modal improvements */
-#editContent{
-  width:420px; max-width:100%; max-height:85vh; display:flex; flex-direction:column;
-  gap:8px; padding:12px 14px;
-}
-#assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px;}
+#assignContent h3,#searchContent h3,#toneContent h3{color:#4A90E2;text-align:center;margin-bottom:8px;}
 .assign-item{margin:6px 0;display:flex;flex-direction:column;}
 .assign-item label{font-weight:bold;margin-bottom:3px;}
 .assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;}
@@ -61,23 +52,6 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
 .tone-btn{margin-left:4px;padding:4px 7px;font-size:0.9em;border-radius:6px;background:#4A90E2;color:#fff;cursor:pointer;border:none;}
 .tone-option{display:inline-block;margin:6px 6px;padding:6px 10px;background:#f0f0f0;border-radius:5px;cursor:pointer;}
 .tone-option:hover{background:#4A90E2;color:#fff;}
-
-/* Scrollable body inside edit modal */
-.edit-body{overflow:auto; padding-right:6px;}
-
-/* Footer always visible inside modal */
-.edit-footer{
-  display:flex; gap:10px; justify-content:center; align-items:center; padding-top:8px;
-  border-top:1px solid #eee; margin-top:6px; background:transparent; flex-shrink:0;
-}
-/* Make sure buttons inside modal are clearly visible */
-.edit-footer button{min-width:120px;}
-
-/* Small screens adjustments */
-@media (max-width:480px){
-  #editContent{width:100%; padding:10px;}
-  .edit-footer button{min-width:100px; font-size:0.85em;}
-}
 </style>
 </head>
 <body>
@@ -138,37 +112,9 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
 <div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px;"><button id="saveAssign">Guardar</button><button id="closeAssign">Cerrar</button></div></div></div>
 <div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px;"><button id="closeSearch">Cerrar</button></div></div></div>
 
-<!-- Edit modal (para modificar video, pdf, tono, musicos, fecha) -->
-<div id="editModal" aria-hidden="true">
-  <div id="editContent" role="dialog" aria-modal="true" aria-labelledby="editTitle">
-    <h3 id="editTitle">Modificar Canción</h3>
-
-    <!-- body (scrolls if content large) -->
-    <div class="edit-body">
-      <label for="editVideo">Video YouTube</label>
-      <input type="url" id="editVideo" placeholder="https://..." />
-      <label for="editFile">Cifrado PDF (subir nuevo si deseas)</label>
-      <input type="file" id="editFile" accept="application/pdf" />
-      <label for="editChords">Tono</label>
-      <input type="text" id="editChords" placeholder="Ej: G mayor" />
-      <div id="editAssignFields"></div>
-      <label for="editDate">Fecha</label>
-      <input type="date" id="editDate" />
-    </div>
-
-    <!-- footer (always visible) -->
-    <div class="edit-footer">
-      <button id="saveEdit">Guardar cambios</button>
-      <button id="cancelEdit">Cancelar</button>
-    </div>
-  </div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDhWpUt9cfxa21T8ijfUCIJuApWBBaBUJQ",
@@ -321,57 +267,8 @@ async function uploadToGoFile(file) {
   return result.data?.downloadPage || "";
 }
 
-// Edit modal helpers
-const editModal = document.getElementById("editModal");
-const editVideo = document.getElementById("editVideo");
-const editFile = document.getElementById("editFile");
-const editChords = document.getElementById("editChords");
-const editAssignFields = document.getElementById("editAssignFields");
-const editDate = document.getElementById("editDate");
-const saveEdit = document.getElementById("saveEdit");
-const cancelEdit = document.getElementById("cancelEdit");
-
-let currentEditId = null;
-let currentEditSong = null;
-
-function buildEditAssignFields(existingMusicos = {}) {
-  editAssignFields.innerHTML = "<h4 style='text-align:center;margin:8px 0 6px 0;color:#4A90E2;'>Músicos</h4>";
-  instruments.forEach(instr => {
-    const div = document.createElement("div");
-    div.classList.add("assign-item");
-    const selId = `editsel-${instr.replace(/\s+/g,'_')}`;
-    div.innerHTML = `<label style="font-weight:bold;margin-bottom:3px;">${instr}:</label>
-      <select id="${selId}">
-        <option value="">-- Seleccionar --</option>
-        ${names.map(n=>`<option value="${n}" ${existingMusicos[instr]===n?'selected':''}>${n}</option>`).join('')}
-      </select>`;
-    editAssignFields.appendChild(div);
-  });
-}
-
-// Close modal on cancel
-cancelEdit.onclick = () => { editModal.style.display = "none"; currentEditId = null; currentEditSong = null; };
-
-// Close modal when clicking outside content
-editModal.addEventListener('click', (e) => {
-  if (e.target === editModal) {
-    editModal.style.display = 'none';
-    currentEditId = null;
-    currentEditSong = null;
-  }
-});
-
-// Close modal with Escape key
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && editModal.style.display === 'flex') {
-    editModal.style.display = 'none';
-    currentEditId = null;
-    currentEditSong = null;
-  }
-});
-
 // Mostrar canciones
-async function addSongToDOM(song, id) {
+async function addSongToDOM(song) {
   let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
   if (!block) {
     block = document.createElement("div");
@@ -405,34 +302,15 @@ async function addSongToDOM(song, id) {
   if (loggedIn) {
     const tdActions = document.createElement("td");
     tdActions.classList.add("actions");
-
-    const edit = document.createElement("button");
-    edit.textContent = "Modificar";
-    edit.classList.add("edit");
-    edit.onclick = () => {
-      // abrir modal de edición y precargar
-      currentEditId = id;
-      currentEditSong = song;
-      editVideo.value = song.video || "";
-      editChords.value = song.chords || "";
-      editFile.value = "";
-      editDate.value = song.date || "";
-      buildEditAssignFields(song.musicos || {});
-      // show modal (flex to use centering)
-      editModal.style.display = "flex";
-    };
-
     const del = document.createElement("button");
     del.textContent = "Eliminar";
     del.classList.add("delete");
-    del.onclick = async () => {
-      if (confirm("¿Eliminar esta canción?")) {
-        await deleteDoc(doc(db, "songs", id));
-        renderSongs();
+    del.onclick = () => {
+      if (confirm("¿Eliminar solo de la vista? (No se borrará de Firebase)")) {
+        tr.remove();
       }
     };
-
-    tdActions.append(edit, del);
+    tdActions.append(del);
     tr.append(tdActions);
   }
 
@@ -443,67 +321,12 @@ async function renderSongs() {
   calendarContainer.innerHTML = "";
   try {
     const querySnapshot = await getDocs(collection(db, "songs"));
-    querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
+    querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data()));
   } catch (err) {
     console.error(err);
     calendarContainer.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
   }
 }
-
-// Guardar edición (actualiza el doc existente)
-saveEdit.onclick = async () => {
-  if (!currentEditId) return alert("No hay canción seleccionada.");
-  try {
-    const updates = {};
-    const newVideo = editVideo.value.trim();
-    const newChords = editChords.value.trim();
-    const newDate = editDate.value;
-
-    if (newVideo) updates.video = newVideo;
-    else if (currentEditSong.video) updates.video = currentEditSong.video;
-
-    if (newChords) updates.chords = newChords;
-    else if (currentEditSong.chords) updates.chords = currentEditSong.chords;
-
-    if (newDate) updates.date = newDate;
-    else if (currentEditSong.date) updates.date = currentEditSong.date;
-
-    // recoger músicos del modal
-    const newMusicos = {};
-    instruments.forEach(instr => {
-      const sel = document.getElementById(`editsel-${instr.replace(/\s+/g,'_')}`);
-      if (sel && sel.value) newMusicos[instr] = sel.value;
-    });
-    // si se dejó vacío, mantenemos el anterior si existía
-    if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
-    else if (currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
-
-    // si suben nuevo pdf, subo y agrego fileURL + fileName
-    if (editFile.files.length > 0) {
-      const file = editFile.files[0];
-      const fileURL = await uploadToGoFile(file);
-      updates.fileName = file.name;
-      updates.fileURL = fileURL;
-    } else {
-      // no subió nada nuevo: mantenemos si existía
-      if (currentEditSong.fileURL) {
-        updates.fileURL = currentEditSong.fileURL;
-        if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
-      }
-    }
-
-    // ejecutar update
-    await updateDoc(doc(db, "songs", currentEditId), updates);
-    alert("✅ Cambios guardados.");
-    editModal.style.display = "none";
-    currentEditId = null;
-    currentEditSong = null;
-    renderSongs();
-  } catch (err) {
-    console.error(err);
-    alert("❌ Error al guardar cambios: " + (err.message || err));
-  }
-};
 
 // Agregar canción
 document.getElementById("addLine").onclick = async () => {
@@ -548,3 +371,5 @@ renderSongs();
 </script>
 </body>
 </html>
+
+haz la correcion que te pedi en este codigo y dame un html nuevo con la adecuacion, no dañes mas nada , lo unico que quiero para terminar es que cuando pulse eliminar se borre todo el cuadro  solo eso
