@@ -44,17 +44,6 @@ a:hover{text-decoration:underline;}
 .assign-item label{font-weight:bold;margin-bottom:3px;}
 .assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;}
 td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
-
-/* estilo del buscador */
-#searchInput {
-  width: 95%;
-  margin-top: 5px;
-  padding: 4px 5px;
-  border-radius: 4px;
-  border: 1px solid #bbb;
-  font-size: 0.85em;
-  display: none;
-}
 </style>
 </head>
 <body>
@@ -84,10 +73,7 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
         <th class="action-header">Acción</th>
       </tr>
       <tr>
-        <td style="display:flex;align-items:center;gap:5px;">
-          <input type="url" id="videoURL" placeholder="https://..."/>
-          <button type="button" id="toggleSearch" title="Buscar video">🔍 Buscar</button>
-        </td>
+        <td><input type="url" id="videoURL" placeholder="https://..."/></td>
         <td><input type="file" id="fileUpload" accept="application/pdf"/></td>
         <td><input type="text" id="chords" placeholder="Ej: G - D - Em"/></td>
         <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
@@ -95,7 +81,6 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
         <td class="action-cell"><button type="button" id="addLine">Agregar</button></td>
       </tr>
     </table>
-    <input type="text" id="searchInput" placeholder="Buscar video por nombre o enlace...">
   </form>
 
   <h2 style="text-align:center;color:#4A90E2;">Lista multimedia</h2>
@@ -153,43 +138,135 @@ confirmLogin.onclick = () => {
     loginSection.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
     lineForm.classList.remove("hidden");
-    document.getElementById("toggleSearch").style.display = "inline-block";
     renderSongs();
   } else {
     errorMsg.textContent = "Usuario o contraseña incorrectos.";
   }
 };
-logoutBtn.onclick = () => { loggedIn = false; logoutBtn.classList.add("hidden"); loginBtn.classList.remove("hidden"); lineForm.classList.add("hidden"); document.getElementById("toggleSearch").style.display = "none"; renderSongs(); };
+logoutBtn.onclick = () => { loggedIn = false; logoutBtn.classList.add("hidden"); loginBtn.classList.remove("hidden"); lineForm.classList.add("hidden"); renderSongs(); };
 
-// ---------- BUSCADOR ----------
-const toggleSearch = document.getElementById("toggleSearch");
-const searchInput = document.getElementById("searchInput");
+// ---------- ASIGNACIÓN ----------
+const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
+const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
+const assignBtn = document.getElementById("assignBtn");
+const assignModal = document.getElementById("assignModal");
+const assignFields = document.getElementById("assignFields");
+const saveAssign = document.getElementById("saveAssign");
+const closeAssign = document.getElementById("closeAssign");
 
-toggleSearch.style.display = "none"; // oculto si no está logueado
+function openAssignModal() {
+  assignFields.innerHTML = "";
+  instruments.forEach(instr => {
+    const div = document.createElement("div");
+    div.classList.add("assign-item");
+    div.innerHTML = `<label>${instr}:</label>
+      <select id="sel-${instr.replace(/\s+/g,'_')}">
+        <option value="">-- Seleccionar --</option>
+        ${names.map(n=>`<option value="${n}">${n}</option>`).join('')}
+      </select>`;
+    assignFields.appendChild(div);
+  });
+  assignModal.style.display = "flex";
+}
+assignBtn.onclick = () => { if (loggedIn) openAssignModal(); else alert("Debes iniciar sesión como ADMINPDC"); };
+closeAssign.onclick = () => assignModal.style.display = "none";
+saveAssign.onclick = () => { assignModal.style.display = "none"; alert("Asignaciones guardadas correctamente."); };
 
-toggleSearch.onclick = () => {
-  searchInput.style.display = searchInput.style.display === "none" ? "block" : "none";
-  searchInput.focus();
-};
+// ---------- FIRESTORE Y GOFILE ----------
+async function uploadToGoFile(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await fetch("https://store1.gofile.io/uploadFile", { method: "POST", body: formData });
+  const result = await response.json();
+  return result.data.downloadPage;
+}
 
-searchInput.addEventListener("input", async (e) => {
-  const query = e.target.value.toLowerCase();
-  if (!query) {
-    renderSongs();
-    return;
+async function addSongToDOM(song, id) {
+  let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
+  if (!block) {
+    block = document.createElement("div");
+    block.classList.add("calendar-block");
+    block.dataset.date = song.date;
+    block.innerHTML = `<div class="calendar-date">${song.date}</div>
+      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músico</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
+    calendarContainer.appendChild(block);
   }
+
+  const tbody = block.querySelector("tbody");
+  const tr = document.createElement("tr");
+
+  const tdVideo = document.createElement("td");
+  if (song.video) {
+    const idv = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
+    tdVideo.innerHTML = idv ? `<iframe src="https://www.youtube.com/embed/${idv[1]}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
+  }
+
+  const tdFile = document.createElement("td");
+  if (song.fileURL) tdFile.innerHTML = `<a href="${song.fileURL}" target="_blank">${song.fileName}</a>`;
+
+  const tdChords = document.createElement("td");
+  tdChords.textContent = song.chords;
+
+  const tdNote = document.createElement("td");
+  tdNote.textContent = song.musicos || "";
+
+  tr.append(tdVideo, tdFile, tdChords, tdNote);
+
+  if (loggedIn) {
+    const tdActions = document.createElement("td");
+    tdActions.classList.add("actions");
+    const del = document.createElement("button");
+    del.textContent = "Eliminar";
+    del.classList.add("delete");
+    del.onclick = async () => {
+      if (confirm("¿Eliminar esta canción?")) {
+        await deleteDoc(doc(db, "songs", id));
+        renderSongs();
+      }
+    };
+    tdActions.append(del);
+    tr.append(tdActions);
+  }
+
+  tbody.append(tr);
+}
+
+async function renderSongs() {
   calendarContainer.innerHTML = "";
   const querySnapshot = await getDocs(collection(db, "songs"));
-  let found = false;
-  querySnapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    if (data.video?.toLowerCase().includes(query)) {
-      addSongToDOM(data, docSnap.id);
-      found = true;
-    }
-  });
-  if (!found) calendarContainer.innerHTML = "<p style='text-align:center;color:#999;'>No se encontraron videos con ese criterio.</p>";
-});
+  querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
+}
 
-// ---------- resto del código se mantiene igual (ASIGNACIÓN + FIRESTORE + renderSongs) ----------
-// (no se toca nada más de tu código)
+document.getElementById("addLine").onclick = async () => {
+  const url = document.getElementById("videoURL").value.trim();
+  const fileInput = document.getElementById("fileUpload");
+  const chords = document.getElementById("chords").value.trim();
+  const date = document.getElementById("customDate").value;
+
+  if (!date) return alert("Por favor, elige una fecha.");
+
+  try {
+    let fileData = {};
+    if (fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const fileURL = await uploadToGoFile(file);
+      fileData = { fileName: file.name, fileURL };
+    }
+
+    await addDoc(collection(db, "songs"), { video: url, chords, date, ...fileData });
+    alert("✅ Canción agregada correctamente.");
+    document.getElementById("videoURL").value = "";
+    document.getElementById("fileUpload").value = "";
+    document.getElementById("chords").value = "";
+    document.getElementById("customDate").value = "";
+    renderSongs();
+  } catch (e) {
+    console.error("Error al guardar:", e);
+    alert("❌ Error: " + e.message);
+  }
+};
+
+renderSongs();
+</script>
+</body>
+</html>
