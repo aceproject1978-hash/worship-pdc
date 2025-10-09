@@ -142,11 +142,6 @@ body.overlayLocked{overflow:hidden;height:100vh;}
 @media (min-width:521px){
   .video-thumb, .play-overlay, .play-btn { display:none !important; }
 }
-
-/* extra small helpers for PDF buttons */
-.pdf-action { display:inline-block;padding:8px 10px;border-radius:8px;color:#fff;background:#4A90E2;text-decoration:none;margin:6px 6px;font-size:0.9em; }
-.pdf-action.secondary { background:#6c757d; }
-.pdf-note { font-size:0.82em;color:#666;margin-top:6px;display:block;text-align:center; }
 </style>
 </head>
 <body class="overlayLocked">
@@ -558,69 +553,6 @@ async function uploadToGoFile(file) {
   return fileData; // { fileURL, fileURLDirect }
 }
 
-/* Helper para comprobar si un enlace directo apunta realmente a un PDF accesible
-   - Intentamos un HEAD; si falla, intentamos una pequeña GET con Range.
-   - Si el servidor no permite CORS o bloquea, la comprobación devolverá false.
-   - Usamos AbortController para timeout (4s).
-*/
-async function isPdfDirectAccessible(url, timeout = 4000) {
-  if (!url) return false;
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    // Primero intentamos HEAD
-    let resp = await fetch(url, { method: 'HEAD', signal: controller.signal });
-    clearTimeout(id);
-    if (resp && resp.ok) {
-      const ct = (resp.headers.get('content-type') || '').toLowerCase();
-      if (ct.includes('pdf')) return true;
-      // Content-Disposition puede contener nombre .pdf
-      const cd = (resp.headers.get('content-disposition') || '').toLowerCase();
-      if (cd.includes('.pdf')) return true;
-      return false;
-    }
-  } catch (err) {
-    // puede fallar por CORS o porque el servidor no admite HEAD
-  } finally {
-    clearTimeout(id);
-  }
-
-  // Segundo intento: GET con Range para no descargar todo
-  const controller2 = new AbortController();
-  const id2 = setTimeout(() => controller2.abort(), timeout);
-  try {
-    const resp2 = await fetch(url, {
-      method: 'GET',
-      headers: { Range: 'bytes=0-1023' }, // pedimos sólo el inicio (si el servidor lo soporta)
-      signal: controller2.signal,
-      cache: 'no-store'
-    });
-    clearTimeout(id2);
-    if (resp2 && resp2.ok) {
-      const ct2 = (resp2.headers.get('content-type') || '').toLowerCase();
-      if (ct2.includes('pdf')) return true;
-      const cd2 = (resp2.headers.get('content-disposition') || '').toLowerCase();
-      if (cd2.includes('.pdf')) return true;
-      // como heurística adicional, mirar la primera parte del body (texto) buscando "%PDF"
-      try {
-        const blob = await resp2.blob();
-        // No convertimos todo a texto; usamos slice y text()
-        const slice = blob.slice(0, 512);
-        const txt = await slice.text().catch(()=>'');
-        if (txt.includes('%PDF')) return true;
-      } catch (e) {
-        // ignore
-      }
-    }
-  } catch (err) {
-    // probablemente CORS o timeout -> no accesible
-  } finally {
-    clearTimeout(id2);
-  }
-
-  return false;
-}
-
 /* Edit modal helpers */
 const editModal = document.getElementById("editModal");
 const editVideo = document.getElementById("editVideo");
@@ -717,70 +649,31 @@ async function addSongToDOM(song, id) {
   const tdFile = document.createElement("td");
   tdFile.dataset.label = "Cifrado PDF";
   // Preferir fileURLDirect si existe
-  const direct = song.fileURLDirect || song.fileDirect || "";
+  const direct = song.fileURLDirect || song.fileURLDirect || song.fileDirect || "";
   const page = song.fileURL || song.fileURLPage || "";
 
   if (direct || page) {
-    // NOTA: muchos viewers (docs.google.com/gview, drive viewer, iframes) fallan en móvil si el servidor que sirve el PDF
-    // bloquea cabeceras o no expone Content-Type/CORS adecuados. Por eso en móviles intentamos comprobar automáticamente
-    // si el enlace directo sirve realmente un PDF (HEAD/GET). Si la comprobación falla mostramos la "página de descarga".
+    const googleView = direct ? "https://docs.google.com/gview?url=" + encodeURIComponent(direct) + "&embedded=true" : "";
     const isMobile = window.matchMedia && window.matchMedia("(max-width:520px)").matches;
 
     if (isMobile) {
-      // coloque un contenedor con id único para mostrar el resultado de la comprobación async
-      const testContainerId = `pdfTest_${id || Math.random().toString(36).slice(2,8)}`;
-      tdFile.innerHTML = `<div id="${testContainerId}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-        <small style="color:#666;margin-bottom:6px;">Comprobando enlace PDF...</small>
-      </div>`;
-
-      // lanzamos la comprobación asíncrona y actualizamos el DOM según resultado
-      (async () => {
-        const container = document.getElementById(testContainerId);
-        const pageLink = page || direct;
-        try {
-          if (direct) {
-            const ok = await isPdfDirectAccessible(direct, 4000);
-            if (ok) {
-              container.innerHTML = `
-                <a class="pdf-action" href="${direct}" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
-                ${pageLink ? `<a class="pdf-action secondary" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>` : ''}
-                <span class="pdf-note">Si la vista previa no carga, usa "Abrir PDF" o "Abrir página" y descarga el archivo.</span>
-              `;
-              return;
-            } else {
-              // direct existe pero no es fiable -> mostrar página de descarga si hay
-              if (pageLink) {
-                container.innerHTML = `
-                  <a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>
-                  <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
-                `;
-                return;
-              }
-            }
-          } else if (pageLink) {
-            container.innerHTML = `
-              <a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>
-              <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
-            `;
-            return;
-          }
-        } catch (e) {
-          // en caso de error, mostrar fallback
-        }
-        // fallback final
-        container.innerHTML = `
-          ${pageLink ? `<a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>` : ''}
-          ${direct ? `<a class="pdf-action" href="${direct}" target="_blank" rel="noopener noreferrer">Descargar / Abrir PDF</a>` : ''}
-          <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
-        `;
-      })();
+      if (direct && googleView) {
+        tdFile.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;">
+            <a href="${direct}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;background:#4A90E2;color:#fff;border-radius:8px;text-decoration:none;">Abrir PDF</a>
+            <a href="${googleView}" target="_blank" rel="noopener" style="font-size:0.85em;color:#274D87;text-decoration:underline;">Previsualizar (si no abre)</a>
+          </div>`;
+      } else {
+        tdFile.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;">
+            <a href="${page}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;background:#4A90E2;color:#fff;border-radius:8px;text-decoration:none;">Abrir página</a>
+            <small style="font-size:0.82em;color:#666;text-align:center;">Si ves una página con código, pulsa "Descargar" para obtener el PDF</small>
+          </div>`;
+      }
     } else {
-      // Desktop: enlazamos al enlace directo si existe, sino a la página de descarga (más cómodo en PC)
       const link = direct || page;
-      tdFile.innerHTML = `<a href="${link}" target="_blank" rel="noopener noreferrer">${song.fileName || 'PDF'}</a>`;
+      tdFile.innerHTML = `<a href="${link}" target="_blank" rel="noopener">${song.fileName || 'PDF'}</a>`;
     }
-  } else {
-    tdFile.textContent = "";
   }
 
   const tdChords = document.createElement("td");
