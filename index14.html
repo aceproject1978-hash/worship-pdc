@@ -271,13 +271,14 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 /* ========== Credenciales (local validation for now) ========== */
-const VISITOR_PASSWORD = "pdc2025*";
+/* NOTA: para producción migrar a Firebase Auth y eliminar credenciales del cliente */
+const VISITOR_PASSWORD = "pdc2025*";          // (queda en el script por ahora)
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
 
 /* Estado de sesión */
-let loggedIn = false;
-let visitorLogged = false;
+let loggedIn = false;        // admin
+let visitorLogged = false;   // visitante
 
 /* Elementos del overlay */
 const accessOverlay = document.getElementById("accessOverlay");
@@ -306,17 +307,21 @@ function extractYouTubeID(url) {
   return m ? m[1] : null;
 }
 
-/* Mantenimiento: evita que se cargue el contenido antes del login. */
+/* Mantenimiento: evita que se cargue el contenido antes del login.
+   Mostramos overlay al inicio (atributo class body.overlayLocked ya aplicado). */
 function showOverlay() {
   if (accessOverlay) accessOverlay.style.display = "flex";
   document.body.classList.add("overlayLocked");
   if (overlayError) overlayError.textContent = "";
+  // reset boxes
   if (visitorBox) visitorBox.style.display = "none";
   if (adminBox) adminBox.style.display = "none";
   const choices = document.getElementById("loginChoices");
   if (choices) choices.style.display = "flex";
   try { if (visitorPass) visitorPass.value = ""; if (adminUser) adminUser.value = ""; if (adminPass) adminPass.value = ""; } catch(e){}
 }
+
+/* Oculta overlay (muestra contenido). */
 function hideOverlay() {
   if (accessOverlay) accessOverlay.style.display = "none";
   document.body.classList.remove("overlayLocked");
@@ -328,8 +333,9 @@ function enterAsVisitor() {
   loggedIn = false;
   hideOverlay();
   if (mainContent) mainContent.classList.remove("hidden");
-  if (lineForm) lineForm.classList.add("hidden");
+  if (lineForm) lineForm.classList.add("hidden"); // visitante no ve edición
   if (logoutBtn) logoutBtn.classList.remove("hidden");
+  // renderizamos datos (ahora que el usuario puede ver)
   renderSongs();
   try { localStorage.setItem("worship_role", "visitor"); } catch(e){}
 }
@@ -338,7 +344,7 @@ function enterAsAdmin() {
   loggedIn = true;
   hideOverlay();
   if (mainContent) mainContent.classList.remove("hidden");
-  if (lineForm) lineForm.classList.remove("hidden");
+  if (lineForm) lineForm.classList.remove("hidden"); // admin ve edición
   if (logoutBtn) logoutBtn.classList.remove("hidden");
   renderSongs();
   try { localStorage.setItem("worship_role", "admin"); } catch(e){}
@@ -384,6 +390,7 @@ if (adminCancel) adminCancel.onclick = () => {
   if (overlayError) overlayError.textContent = "";
 };
 if (overlayClose) overlayClose.onclick = () => {
+  // restablecer a choices (no mostramos contenido)
   if (visitorBox) visitorBox.style.display = "none";
   if (adminBox) adminBox.style.display = "none";
   const choices = document.getElementById("loginChoices");
@@ -397,6 +404,7 @@ if (visitorSubmit) visitorSubmit.onclick = () => {
   if (!pass) { if (overlayError) overlayError.textContent = "Ingresa la contraseña de visitante."; return; }
   if (pass === VISITOR_PASSWORD) enterAsVisitor(); else if (overlayError) overlayError.textContent = "Contraseña visitante incorrecta.";
 };
+
 if (adminSubmit) adminSubmit.onclick = () => {
   const user = (adminUser && adminUser.value) ? adminUser.value.trim() : "";
   const pass = (adminPass && adminPass.value) ? adminPass.value.trim() : "";
@@ -409,9 +417,11 @@ if (logoutBtn) logoutBtn.onclick = () => {
   loggedIn = false;
   visitorLogged = false;
   try { localStorage.removeItem("worship_role"); } catch(e){}
+  // ocultar todo el contenido
   if (mainContent) mainContent.classList.add("hidden");
   if (lineForm) lineForm.classList.add("hidden");
   if (logoutBtn) logoutBtn.classList.add("hidden");
+  // mostrarse overlay
   showOverlay();
 };
 
@@ -524,33 +534,15 @@ if (searchVideoBtn) searchVideoBtn.onclick = async () => {
 };
 if (closeSearch) closeSearch.onclick = () => { if (searchModal) searchModal.style.display = "none"; };
 
-/* Upload Gofile (MEJORADA): devuelve objeto con fileURL y fileURLDirect cuando sea posible */
+/* Upload Gofile */
 async function uploadToGoFile(file) {
   const formData = new FormData();
   formData.append("file", file);
   const response = await fetch("https://store1.gofile.io/uploadFile", { method: "POST", body: formData });
   const result = await response.json();
-
-  const data = result?.data || {};
-  const fileData = {
-    // página de descarga (fallback)
-    fileURL: data.downloadPage || data.link || data.downloadPage || "",
-    // intento de enlace directo (propiedades que algunas respuestas pueden incluir)
-    fileURLDirect: data.directLink || data.downloadUrl || data.download || data.directDownload || ""
-  };
-
-  // Heurística: si la respuesta incluye server y fileId/code intentamos construir un enlace directo
-  try {
-    if (!fileData.fileURLDirect && data.server && (data.fileId || data.code)) {
-      const id = data.fileId || data.code;
-      // Nota: esto es heurístico y puede no funcionar en todos los casos
-      fileData.fileURLDirect = `https://srv${data.server}.gofile.io/download/${id}/${encodeURIComponent(file.name)}`;
-    }
-  } catch (e) {
-    // ignore
-  }
-
-  return fileData; // { fileURL, fileURLDirect }
+  // NOTE: result.data.downloadPage may be a redirect page, not the direct .pdf link.
+  // We keep using it but add Google Viewer fallback on mobile.
+  return result.data?.downloadPage || "";
 }
 
 /* Edit modal helpers */
@@ -624,6 +616,7 @@ async function addSongToDOM(song, id) {
   tdVideo.dataset.label = "Video";
   if (song.video) {
     const vid = extractYouTubeID(song.video);
+    // On small screens show thumbnail that opens YouTube in new tab (avoids heavy iframes).
     const isMobile = window.matchMedia && window.matchMedia("(max-width:520px)").matches;
     if (isMobile && vid) {
       const thumb = document.createElement('div');
@@ -639,6 +632,7 @@ async function addSongToDOM(song, id) {
       thumb.appendChild(link);
       tdVideo.appendChild(thumb);
     } else {
+      // Desktop / larger: embed iframe as before
       const idv = vid || '';
       tdVideo.innerHTML = idv ? `<iframe src="https://www.youtube.com/embed/${idv}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
     }
@@ -648,31 +642,19 @@ async function addSongToDOM(song, id) {
 
   const tdFile = document.createElement("td");
   tdFile.dataset.label = "Cifrado PDF";
-  // Preferir fileURLDirect si existe
-  const direct = song.fileURLDirect || song.fileURLDirect || song.fileDirect || "";
-  const page = song.fileURL || song.fileURLPage || "";
-
-  if (direct || page) {
-    const googleView = direct ? "https://docs.google.com/gview?url=" + encodeURIComponent(direct) + "&embedded=true" : "";
+  if (song.fileURL) {
+    const url = song.fileURL;
+    // Google Viewer fallback for mobile
+    const googleView = "https://docs.google.com/gview?url=" + encodeURIComponent(url) + "&embedded=true";
     const isMobile = window.matchMedia && window.matchMedia("(max-width:520px)").matches;
-
     if (isMobile) {
-      if (direct && googleView) {
-        tdFile.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;">
-            <a href="${direct}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;background:#4A90E2;color:#fff;border-radius:8px;text-decoration:none;">Abrir PDF</a>
-            <a href="${googleView}" target="_blank" rel="noopener" style="font-size:0.85em;color:#274D87;text-decoration:underline;">Previsualizar (si no abre)</a>
-          </div>`;
-      } else {
-        tdFile.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;">
-            <a href="${page}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;background:#4A90E2;color:#fff;border-radius:8px;text-decoration:none;">Abrir página</a>
-            <small style="font-size:0.82em;color:#666;text-align:center;">Si ves una página con código, pulsa "Descargar" para obtener el PDF</small>
-          </div>`;
-      }
+      tdFile.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center;">
+          <a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 10px;background:#4A90E2;color:#fff;border-radius:8px;text-decoration:none;">Abrir PDF</a>
+          <a href="${googleView}" target="_blank" rel="noopener" style="font-size:0.85em;color:#274D87;text-decoration:underline;">Previsualizar (si no abre)</a>
+        </div>`;
     } else {
-      const link = direct || page;
-      tdFile.innerHTML = `<a href="${link}" target="_blank" rel="noopener">${song.fileName || 'PDF'}</a>`;
+      tdFile.innerHTML = `<a href="${url}" target="_blank" rel="noopener">${song.fileName || 'PDF'}</a>`;
     }
   }
 
@@ -695,6 +677,7 @@ async function addSongToDOM(song, id) {
     edit.textContent = "Modificar";
     edit.classList.add("edit");
     edit.onclick = () => {
+      // abrir modal de edición y precargar
       currentEditId = id;
       currentEditSong = song;
       if (editVideo) editVideo.value = song.video || "";
@@ -759,20 +742,20 @@ if (saveEdit) saveEdit.onclick = async () => {
       const sel = document.getElementById(`editsel-${instr.replace(/\s+/g,'_')}`);
       if (sel && sel.value) newMusicos[instr] = sel.value;
     });
+    // si se dejó vacío, mantenemos el anterior si existía
     if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
     else if (currentEditSong && currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
 
-    // si suben nuevo pdf, subo y agrego fileURL + fileURLDirect + fileName
+    // si suben nuevo pdf, subo y agrego fileURL + fileName
     if (editFile && editFile.files.length > 0) {
       const file = editFile.files[0];
-      const fileData = await uploadToGoFile(file); // { fileURL, fileURLDirect }
-      if (fileData.fileURL) updates.fileURL = fileData.fileURL;
-      if (fileData.fileURLDirect) updates.fileURLDirect = fileData.fileURLDirect;
+      const fileURL = await uploadToGoFile(file);
       updates.fileName = file.name;
+      updates.fileURL = fileURL;
     } else {
+      // no subió nada nuevo: mantenemos si existía
       if (currentEditSong && currentEditSong.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
-        if (currentEditSong.fileURLDirect) updates.fileURLDirect = currentEditSong.fileURLDirect;
         if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
       }
     }
@@ -804,15 +787,11 @@ if (addLineBtn) addLineBtn.onclick = async () => {
   if (!date) return alert("Por favor, elige una fecha.");
 
   try {
-    let fileDataToSave = {};
+    let fileData = {};
     if (fileInput && fileInput.files.length > 0) {
       const file = fileInput.files[0];
-      const fileData = await uploadToGoFile(file); // { fileURL, fileURLDirect }
-      fileDataToSave = {
-        fileName: file.name,
-        fileURL: fileData.fileURL || "",
-        fileURLDirect: fileData.fileURLDirect || ""
-      };
+      const fileURL = await uploadToGoFile(file);
+      fileData = { fileName: file.name, fileURL };
     }
 
     await addDoc(collection(db, "songs"), {
@@ -820,7 +799,7 @@ if (addLineBtn) addLineBtn.onclick = async () => {
       chords,
       date,
       musicos: selectedMusicians,
-      ...fileDataToSave
+      ...fileData
     });
 
     alert("✅ Canción agregada correctamente.");
