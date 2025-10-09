@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Calendario Worship PDC</title>
+<style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f9f9fb;
+  color: #333;
+  margin: 15px;
+}
+
+/* === LOGIN MODAL === */
+#loginModal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.8s ease;
+}
+
+#loginBox {
+  background: rgba(20,20,20,0.8);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.7);
+  padding: 40px 30px;
+  width: 320px;
+  text-align: center;
+  color: #fff;
+  animation: popUp 0.7s ease;
+}
+
+#loginBox img {
+  width: 120px;
+  margin-bottom: 15px;
+}
+
+#loginBox h2 {
+  margin-bottom: 20px;
+  color: #FFD43B;
+}
+
+#loginBox input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 15px;
+}
+
+#loginBox input::placeholder {
+  color: #aaa;
+}
+
+#loginBox button {
+  width: 100%;
+  padding: 10px;
+  background: #FFD43B;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s;
+}
+
+#loginBox button:hover {
+  background: #ffe97a;
+  transform: scale(1.05);
+}
+
+#errorMsg {
+  color: #ff6b6b;
+  font-size: 14px;
+  margin-top: 10px;
+  display: none;
+}
+
+/* Animaciones */
+@keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+@keyframes fadeOut { from {opacity:1;} to {opacity:0;} }
+@keyframes popUp { from {transform:scale(0.8);opacity:0;} to {transform:scale(1);opacity:1;} }
+
+</style>
+</head>
+<body>
+
+<!-- === LOGIN MODAL === -->
+<div id="loginModal">
+  <div id="loginBox">
+    <img src="imagen1.jpg" alt="Logo PDC">
+    <h2>Acceso Worship</h2>
+    <input type="text" id="usuario" placeholder="Usuario" autocomplete="off">
+    <input type="password" id="clave" placeholder="Contraseña">
+    <button onclick="validarLogin()">Ingresar</button>
+    <div id="errorMsg">Usuario o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- === CONTENIDO PRINCIPAL (OCULTO AL INICIO) === -->
+<div id="contenido" style="display:none;">
+  <!-- Aquí va tu calendario completo -->
+  <h1>Calendario Worship PDC</h1>
+  <!-- Resto de tu HTML -->
+</div>
+
+<script>
+const usuariosValidos = ["Rafael","Moises","Nayuris","Orlando","Anny","Luz","Jonathan"];
+const claveCorrecta = "pdc2025*";
+
+function validarLogin(){
+  const user = document.getElementById('usuario').value.trim();
+  const pass = document.getElementById('clave').value.trim();
+  const error = document.getElementById('errorMsg');
+
+  if(usuariosValidos.includes(user) && pass === claveCorrecta){
+    localStorage.setItem('logueado', 'true');
+    cerrarModal();
+  } else {
+    error.style.display = 'block';
+  }
+}
+
+function cerrarModal(){
+  const modal = document.getElementById('loginModal');
+  modal.style.animation = 'fadeOut 0.8s ease';
+  setTimeout(() => {
+    modal.style.display = 'none';
+    document.getElementById('contenido').style.display = 'block';
+  }, 700);
+}
+
+window.onload = () => {
+  if(localStorage.getItem('logueado') === 'true'){
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('contenido').style.display = 'block';
+  }
+};
+</script>
+
+</body>
+</html>

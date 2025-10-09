@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <title>Calendario Worship PDC</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-/* ========== TU ESTILO ORIGINAL (sin tocar funcionalidad) ========== */
+/* Mantiene tu estilo original */
 body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px;}
 h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5);user-select:none;}
 .hidden{display:none;}
@@ -30,14 +29,14 @@ a:hover{text-decoration:underline;}
 .actions button{margin:2px 4px;font-size:0.75em;padding:3px 6px;border-radius:4px;}
 .actions .edit{background-color:#F0AD4E;}
 .actions .delete{background-color:#D9534F;}
-#loginSection{max-width:360px;margin:50px auto;padding:20px;border-radius:10px;background:rgba(255,255,255,0.95);box-shadow:0 6px 20px rgba(0,0,0,0.15);border:1px solid rgba(74,144,226,0.3);text-align:center;}
-#loginSection img{width:150px;margin-bottom:10px;}
-#loginSection h2{margin-bottom:10px;color:#4A90E2;text-align:center;}
+/* Eliminado el login interno (lo reemplazamos por overlay) */
+#loginSection{display:none;} 
 #errorMsg{color:#D9534F;text-align:center;margin-bottom:8px;}
 .calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);}
 .calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em;}
-#loginBtn,#logoutBtn{position:absolute;top:15px;right:25px;}
-/* Modal backdrops */
+#logoutBtn{position:absolute;top:15px;right:25px;}
+
+/* Modal backdrops (preservadas) */
 #assignModal,#searchModal,#toneModal,#editModal{
   position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;
   align-items:center;justify-content:center;z-index:1000;padding:20px;box-sizing:border-box;
@@ -46,7 +45,6 @@ a:hover{text-decoration:underline;}
 #assignContent{width:280px;}
 #searchContent{width:500px;max-height:80vh;overflow-y:auto;}
 #toneContent{width:300px;}
-/* EDIT modal improvements */
 #editContent{
   width:420px; max-width:100%; max-height:85vh; display:flex; flex-direction:column;
   gap:8px; padding:12px 14px;
@@ -71,7 +69,6 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
   display:flex; gap:10px; justify-content:center; align-items:center; padding-top:8px;
   border-top:1px solid #eee; margin-top:6px; background:transparent; flex-shrink:0;
 }
-/* Make sure buttons inside modal are clearly visible */
 .edit-footer button{min-width:120px;}
 
 /* Small screens adjustments */
@@ -80,83 +77,91 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
   .edit-footer button{min-width:100px; font-size:0.85em;}
 }
 
-/* ========== OVERLAY BLACK GLASS LOGIN ========== */
-#accessOverlay{
-  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;
-  background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.85));
-  backdrop-filter: blur(6px);
-  transition:opacity 360ms ease;
+/* ========== OVERLAY PRE-LOGIN (glass negro + humo sutil) ========== */
+#preLoginOverlay{
+  position:fixed;inset:0;
+  background:rgba(5,5,8,0.78);
+  backdrop-filter: blur(10px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;padding:20px;box-sizing:border-box;
+  animation:overlayIn 360ms ease;
 }
-.overlay-card{
-  width:100%;max-width:540px;border-radius:14px;padding:28px;box-sizing:border-box;
-  background:linear-gradient(180deg, rgba(10,10,12,0.6), rgba(6,6,8,0.45));
+#preLoginOverlay.fadeOut{
+  animation:overlayOut 600ms ease forwards;
+}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes overlayOut{from{opacity:1}to{opacity:0;visibility:hidden}}
+.overlayGlass{
+  width:100%;max-width:480px;border-radius:16px;padding:28px 26px;
+  background:linear-gradient(180deg, rgba(16,16,20,0.6), rgba(8,8,10,0.5));
   border:1px solid rgba(255,255,255,0.06);
-  box-shadow:0 12px 40px rgba(0,0,0,0.6);
+  box-shadow:0 10px 40px rgba(0,0,0,0.6);
   color:#fff;text-align:center;position:relative;overflow:hidden;
-  backdrop-filter: blur(10px) saturate(1.05);
+  backdrop-filter: blur(8px) saturate(1.05);
 }
-.overlay-card .logo{width:220px;margin:0 auto 18px auto;display:block;filter:drop-shadow(0 8px 30px rgba(0,0,0,0.6));}
-.overlay-card h2{margin:4px 0 14px 0;font-size:1.35rem;color:#ffd54a;}
-.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
-.choiceBtns button{min-width:140px;padding:10px 14px;border-radius:10px;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#fff;}
-.choiceBtns button:hover{background:rgba(255,255,255,0.08);}
-.formBox{margin-top:8px;display:none;flex-direction:column;align-items:center;gap:8px;}
-.formBox input{width:90%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:#fff;text-align:center;font-size:0.95rem;}
-.formBox .row{display:flex;gap:8px;width:90%;}
-.formBox .row input{flex:1;}
-.formBox .actions{display:flex;gap:8px;justify-content:center;width:90%;}
-.smallMsg{margin-top:8px;color:#ffb3b3;font-weight:600;min-height:18px;}
-.closeOverlay{position:absolute;top:10px;right:12px;background:transparent;border:none;color:rgba(255,255,255,0.5);font-size:1.1rem;padding:6px;border-radius:8px;}
-.closeOverlay:hover{color:#fff;background:rgba(255,255,255,0.03);}
-.hiddenVis{display:none!important;}
-/* Prevent background scroll while overlay active */
-body.overlayLocked{overflow:hidden;height:100vh;}
+/* sutil "humo" - animación muy leve */
+.overlayGlass::before{
+  content:"";position:absolute;inset:-30% -10% auto -10%;
+  height:220%;background:
+    radial-gradient(40% 30% at 10% 20%, rgba(255,255,255,0.03), transparent 15%),
+    radial-gradient(30% 25% at 80% 80%, rgba(255,255,255,0.02), transparent 20%);
+  transform:scale(1.05);
+  animation:mistMove 14s linear infinite;
+  pointer-events:none;
+}
+@keyframes mistMove{
+  0%{transform:translateY(0) scale(1.05);}
+  50%{transform:translateY(-6%) scale(1.07);}
+  100%{transform:translateY(0) scale(1.05);}
+}
+.overlayLogo{width:140px;margin:6px auto 12px auto;filter:drop-shadow(0 6px 20px rgba(74,144,226,0.15));}
+.overlayGlass h2{margin:6px 0 18px 0;color:#CFE8FF;font-weight:700;text-shadow:0 2px 12px rgba(52,120,200,0.08);}
+.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.choiceBtns button{min-width:150px;padding:10px 14px;border-radius:10px;font-size:1rem;}
+.formBox{margin-top:16px;display:none;flex-direction:column;align-items:center;gap:8px;}
+.formBox input{min-width:220px;padding:8px;border-radius:8px;border:none;background:rgba(255,255,255,0.06);color:#fff;text-align:center;}
+.formBox button{padding:8px 12px;border-radius:8px;}
+.overlayMsg{margin-top:8px;color:#ff8b8b;font-weight:600;min-height:18px;}
+/* evitar scroll de fondo mientras overlay esté visible */
+body.overlayLocked{overflow:hidden;}
 </style>
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
-<!-- Mantengo tus botones (se controlan por JS) -->
-<button id="loginBtn" class="hidden">Login</button>
+<!-- Eliminado el botón Login (lo pediste). Solo queda Logout para Admin -->
 <button id="logoutBtn" class="hidden">Cerrar sesión</button>
 
-<!-- ========== OVERLAY DE ACCESO (BLACK GLASS) ========== -->
-<div id="accessOverlay" role="dialog" aria-modal="true" aria-label="Acceso al sitio">
-  <div class="overlay-card" role="document">
-    <button class="closeOverlay" id="overlayClose" title="Cerrar">&times;</button>
-    <img src="imagen1.jpg" alt="Logo PDC" class="logo" />
+<!-- ========== OVERLAY PRE-LOGIN ========== -->
+<div id="preLoginOverlay" role="dialog" aria-modal="true">
+  <div class="overlayGlass" role="document">
+    <img src="imagen1.jpg" alt="Logo PDC" class="overlayLogo" />
     <h2>Bienvenido a Worship PDC</h2>
 
-    <div class="choiceBtns" id="loginChoices">
+    <div id="loginChoices" class="choiceBtns">
       <button id="visitorChoice">Entrar como Visitante</button>
       <button id="adminChoice">Login Admin</button>
     </div>
 
-    <!-- Visitante: solo contraseña -->
+    <!-- Visitante -->
     <div id="visitorBox" class="formBox" aria-hidden="true">
-      <input id="visitorPass" type="password" placeholder="Contraseña visitante" autocomplete="off" />
-      <div class="actions">
-        <button id="visitorSubmit">Entrar</button>
-        <button id="visitorCancel">Volver</button>
-      </div>
+      <input id="visitorPass" type="password" placeholder="Contraseña visitante" />
+      <button id="visitorSubmit">Entrar</button>
     </div>
 
-    <!-- Admin: usuario + contraseña -->
+    <!-- Admin -->
     <div id="adminBox" class="formBox" aria-hidden="true">
-      <input id="adminUser" type="text" placeholder="Usuario" autocomplete="off" />
-      <input id="adminPass" type="password" placeholder="Contraseña" autocomplete="off" />
-      <div class="actions">
-        <button id="adminSubmit">Entrar</button>
-        <button id="adminCancel">Volver</button>
-      </div>
+      <input id="adminUser" type="text" placeholder="Usuario (ej: ADMINPDC)" />
+      <input id="adminPass" type="password" placeholder="Contraseña admin" />
+      <button id="adminSubmit">Entrar</button>
     </div>
 
-    <div id="overlayError" class="smallMsg" aria-live="polite"></div>
+    <div id="preLoginError" class="overlayMsg" aria-live="polite"></div>
   </div>
 </div>
 <!-- ========== FIN OVERLAY ========== -->
 
-<!-- ========== TU CONTENIDO PRINCIPAL (sin cambios funcionales) ========== -->
-<div id="mainContent" class="hidden">
+<!-- Main (tu código original) -->
+<div id="mainContent">
   <form id="lineForm" class="hidden">
     <table>
       <tr>
@@ -192,11 +197,12 @@ body.overlayLocked{overflow:hidden;height:100vh;}
   <div id="calendarContainer"></div>
 </div>
 
-<!-- Modales y editModal (sin cambios) -->
+<!-- Modales (preservados) -->
 <div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions" style="text-align:center;"></div><div style="text-align:center;margin-top:12px;"><button id="closeTone">Cerrar</button></div></div></div>
 <div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px;"><button id="saveAssign">Guardar</button><button id="closeAssign">Cerrar</button></div></div></div>
 <div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px;"><button id="closeSearch">Cerrar</button></div></div></div>
 
+<!-- Edit modal (para modificar video, pdf, tono, musicos, fecha) -->
 <div id="editModal" aria-hidden="true">
   <div id="editContent" role="dialog" aria-modal="true" aria-labelledby="editTitle">
     <h3 id="editTitle">Modificar Canción</h3>
@@ -218,9 +224,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
   </div>
 </div>
 
-<!-- ========== SCRIPT (integrado y adaptado) ========== -->
 <script type="module">
-/* Firebase (igual que antes) */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
@@ -237,18 +241,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ========== Credenciales (local validation for now) ========== */
-/* NOTA: para producción migrar a Firebase Auth y eliminar credenciales del cliente */
-const VISITOR_PASSWORD = "pdc2025*";          // (queda en el script por ahora)
-const ADMIN_USER = "ADMINPDC";
-const ADMIN_PASS = "worship1039";
+// Credenciales solicitadas
+const USERNAME = "ADMINPDC";
+const PASSWORD = "worship1039";
+let loggedIn = false;
 
-/* Estado de sesión */
-let loggedIn = false;        // admin
-let visitorLogged = false;   // visitante
-
-/* Elementos del overlay */
-const accessOverlay = document.getElementById("accessOverlay");
+// ELEMENTOS PARA EL OVERLAY PRE-LOGIN
+const preLoginOverlay = document.getElementById("preLoginOverlay");
 const visitorChoice = document.getElementById("visitorChoice");
 const adminChoice = document.getElementById("adminChoice");
 const visitorBox = document.getElementById("visitorBox");
@@ -257,149 +256,86 @@ const visitorPass = document.getElementById("visitorPass");
 const adminUser = document.getElementById("adminUser");
 const adminPass = document.getElementById("adminPass");
 const visitorSubmit = document.getElementById("visitorSubmit");
-const visitorCancel = document.getElementById("visitorCancel");
 const adminSubmit = document.getElementById("adminSubmit");
-const adminCancel = document.getElementById("adminCancel");
-const overlayError = document.getElementById("overlayError");
-const overlayClose = document.getElementById("overlayClose");
-
-const mainContent = document.getElementById("mainContent");
-const lineForm = document.getElementById("lineForm");
+const preLoginError = document.getElementById("preLoginError");
 const logoutBtn = document.getElementById("logoutBtn");
 
-/* Mantenimiento: evita que se cargue el contenido antes del login.
-   Mostramos overlay al inicio (atributo class body.overlayLocked ya aplicado). */
-function showOverlay() {
-  accessOverlay.style.display = "flex";
-  document.body.classList.add("overlayLocked");
-  overlayError.textContent = "";
-  // reset boxes
-  visitorBox.style.display = "none";
-  adminBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  visitorPass.value = "";
-  adminUser.value = "";
-  adminPass.value = "";
-}
-
-/* Oculta overlay (muestra contenido). */
-function hideOverlay() {
-  accessOverlay.style.display = "none";
-  document.body.classList.remove("overlayLocked");
-}
-
-/* Determina lo que verá cada rol */
-function enterAsVisitor() {
-  visitorLogged = true;
-  loggedIn = false;
-  hideOverlay();
-  mainContent.classList.remove("hidden");
-  lineForm.classList.add("hidden"); // visitante no ve edición
-  logoutBtn.classList.remove("hidden");
-  // renderizamos datos (ahora que el usuario puede ver)
-  renderSongs();
-  localStorage.setItem("worship_role", "visitor");
-}
-function enterAsAdmin() {
-  visitorLogged = false;
-  loggedIn = true;
-  hideOverlay();
-  mainContent.classList.remove("hidden");
-  lineForm.classList.remove("hidden"); // admin ve edición
-  logoutBtn.classList.remove("hidden");
-  renderSongs();
-  localStorage.setItem("worship_role", "admin");
-}
-
-/* Restaurar sesión si existe */
-function restoreSession() {
-  const role = localStorage.getItem("worship_role");
-  if (role === "admin") {
-    enterAsAdmin();
-  } else if (role === "visitor") {
-    enterAsVisitor();
-  } else {
-    showOverlay();
-  }
-}
-
-/* Overlay interactions */
+// Mostrar el formulario adecuado
 visitorChoice.onclick = () => {
-  document.getElementById("loginChoices").style.display = "none";
   visitorBox.style.display = "flex";
   adminBox.style.display = "none";
-  overlayError.textContent = "";
+  preLoginError.textContent = "";
+  visitorPass.value = "";
 };
 adminChoice.onclick = () => {
-  document.getElementById("loginChoices").style.display = "none";
   adminBox.style.display = "flex";
   visitorBox.style.display = "none";
-  overlayError.textContent = "";
-};
-visitorCancel.onclick = () => {
-  visitorBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  overlayError.textContent = "";
-};
-adminCancel.onclick = () => {
-  adminBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  overlayError.textContent = "";
-};
-overlayClose.onclick = () => {
-  // cerrar overlay no permite ver contenido -> solo útil en pruebas.
-  // Mejor restablecer a choices.
-  visitorBox.style.display = "none";
-  adminBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  overlayError.textContent = "";
+  preLoginError.textContent = "";
+  adminUser.value = "";
+  adminPass.value = "";
 };
 
-/* Validaciones (local) */
+// Acciones para entrar
 visitorSubmit.onclick = () => {
   const pass = visitorPass.value.trim();
-  if (!pass) {
-    overlayError.textContent = "Ingresa la contraseña de visitante.";
-    return;
-  }
-  if (pass === VISITOR_PASSWORD) {
-    enterAsVisitor();
+  if (pass === "pdc2025*") {
+    enterMode(false);
   } else {
-    overlayError.textContent = "Contraseña visitante incorrecta.";
+    preLoginError.textContent = "Contraseña visitante incorrecta.";
   }
 };
 
 adminSubmit.onclick = () => {
   const user = adminUser.value.trim();
   const pass = adminPass.value.trim();
-  if (!user || !pass) {
-    overlayError.textContent = "Ingresa usuario y contraseña.";
-    return;
-  }
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    enterAsAdmin();
+  if (user === USERNAME && pass === PASSWORD) {
+    enterMode(true);
   } else {
-    overlayError.textContent = "Usuario o contraseña admin incorrectos.";
+    preLoginError.textContent = "Usuario o contraseña admin incorrectos.";
   }
 };
 
-/* Logout */
+// Función que oculta overlay y activa permisos
+function enterMode(isAdmin) {
+  loggedIn = !!isAdmin;
+  // animación fade-out
+  preLoginOverlay.classList.add("fadeOut");
+  document.body.classList.remove("overlayLocked");
+
+  // después de la animación, ocultamos overlay y mostramos las funciones correspondientes
+  setTimeout(() => {
+    preLoginOverlay.style.display = "none";
+    if (loggedIn) {
+      document.getElementById("lineForm").classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+    } else {
+      // visitante: mantiene lineForm oculto
+      document.getElementById("lineForm").classList.add("hidden");
+      logoutBtn.classList.add("hidden");
+    }
+    // recargar vista para que aparezcan/oculten botones según loggedIn
+    renderSongs();
+  }, 620);
+}
+
+// Logout vuelve a mostrar overlay inicial
 logoutBtn.onclick = () => {
   loggedIn = false;
-  visitorLogged = false;
-  localStorage.removeItem("worship_role");
-  // ocultar todo el contenido
-  mainContent.classList.add("hidden");
-  lineForm.classList.add("hidden");
+  // restablecer overlay
+  preLoginOverlay.style.display = "flex";
+  preLoginOverlay.classList.remove("fadeOut");
+  visitorBox.style.display = "none";
+  adminBox.style.display = "none";
+  preLoginError.textContent = "";
+  document.body.classList.add("overlayLocked");
+  // ocultar formulario admin
+  document.getElementById("lineForm").classList.add("hidden");
   logoutBtn.classList.add("hidden");
-  // mostrarse overlay
-  showOverlay();
+  // recargar vista
+  renderSongs();
 };
 
-/* Restaurar sesión al cargar (si el usuario ya estaba logueado) */
-restoreSession();
-
-/* ===================== Resto de tu lógica original (sin tocar funcionalidad) ===================== */
+/* ========== Resto de tu lógica original (sin cambios funcionales) ========== */
 
 /* Asignar músicos */
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
@@ -566,7 +502,7 @@ async function addSongToDOM(song, id) {
     block.dataset.date = song.date;
     block.innerHTML = `<div class="calendar-date">${song.date}</div>
       <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
-    document.getElementById("calendarContainer").appendChild(block);
+    calendarContainer.appendChild(block);
   }
 
   const tbody = block.querySelector("tbody");
@@ -626,15 +562,14 @@ async function addSongToDOM(song, id) {
   tbody.append(tr);
 }
 
-/* Renderiza canciones (se llama sólo después de login/visitor) */
 async function renderSongs() {
-  document.getElementById("calendarContainer").innerHTML = "";
+  calendarContainer.innerHTML = "";
   try {
     const querySnapshot = await getDocs(collection(db, "songs"));
     querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
   } catch (err) {
     console.error(err);
-    document.getElementById("calendarContainer").innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
+    calendarContainer.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
   }
 }
 
@@ -731,8 +666,8 @@ document.getElementById("addLine").onclick = async () => {
   }
 };
 
-/* NOTA: No hay renderSongs() en el arranque.
-   renderSongs() se invoca solo después de login/visitor (enterAsAdmin/enterAsVisitor). */
+/* Inicial: carga las canciones (visibles incluso para visitantes) */
+renderSongs();
 </script>
 </body>
 </html>

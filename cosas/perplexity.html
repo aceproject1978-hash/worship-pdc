@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <title>Calendario Worship PDC</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-/* ========== TU ESTILO ORIGINAL (sin tocar funcionalidad) ========== */
 body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px;}
 h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5);user-select:none;}
 .hidden{display:none;}
@@ -37,6 +35,14 @@ a:hover{text-decoration:underline;}
 .calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);}
 .calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em;}
 #loginBtn,#logoutBtn{position:absolute;top:15px;right:25px;}
+#mainModal {
+  position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.32);display:flex;align-items:center;justify-content:center;z-index:3333;
+}
+#modalContent {
+  background:#fff;padding:38px 25px 27px 25px;border-radius:15px;
+  box-shadow:0 8px 32px rgba(60,85,120,0.18),0 1.5px 6px rgba(74,144,226,0.12);
+  display:flex;flex-direction:column;align-items:center;width:350px;max-width:95vw;
+}
 /* Modal backdrops */
 #assignModal,#searchModal,#toneModal,#editModal{
   position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;
@@ -62,101 +68,54 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
 .tone-btn{margin-left:4px;padding:4px 7px;font-size:0.9em;border-radius:6px;background:#4A90E2;color:#fff;cursor:pointer;border:none;}
 .tone-option{display:inline-block;margin:6px 6px;padding:6px 10px;background:#f0f0f0;border-radius:5px;cursor:pointer;}
 .tone-option:hover{background:#4A90E2;color:#fff;}
-
-/* Scrollable body inside edit modal */
 .edit-body{overflow:auto; padding-right:6px;}
-
-/* Footer always visible inside modal */
 .edit-footer{
   display:flex; gap:10px; justify-content:center; align-items:center; padding-top:8px;
   border-top:1px solid #eee; margin-top:6px; background:transparent; flex-shrink:0;
 }
-/* Make sure buttons inside modal are clearly visible */
 .edit-footer button{min-width:120px;}
-
-/* Small screens adjustments */
 @media (max-width:480px){
   #editContent{width:100%; padding:10px;}
   .edit-footer button{min-width:100px; font-size:0.85em;}
 }
-
-/* ========== OVERLAY BLACK GLASS LOGIN ========== */
-#accessOverlay{
-  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;
-  background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.85));
-  backdrop-filter: blur(6px);
-  transition:opacity 360ms ease;
-}
-.overlay-card{
-  width:100%;max-width:540px;border-radius:14px;padding:28px;box-sizing:border-box;
-  background:linear-gradient(180deg, rgba(10,10,12,0.6), rgba(6,6,8,0.45));
-  border:1px solid rgba(255,255,255,0.06);
-  box-shadow:0 12px 40px rgba(0,0,0,0.6);
-  color:#fff;text-align:center;position:relative;overflow:hidden;
-  backdrop-filter: blur(10px) saturate(1.05);
-}
-.overlay-card .logo{width:220px;margin:0 auto 18px auto;display:block;filter:drop-shadow(0 8px 30px rgba(0,0,0,0.6));}
-.overlay-card h2{margin:4px 0 14px 0;font-size:1.35rem;color:#ffd54a;}
-.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
-.choiceBtns button{min-width:140px;padding:10px 14px;border-radius:10px;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#fff;}
-.choiceBtns button:hover{background:rgba(255,255,255,0.08);}
-.formBox{margin-top:8px;display:none;flex-direction:column;align-items:center;gap:8px;}
-.formBox input{width:90%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:#fff;text-align:center;font-size:0.95rem;}
-.formBox .row{display:flex;gap:8px;width:90%;}
-.formBox .row input{flex:1;}
-.formBox .actions{display:flex;gap:8px;justify-content:center;width:90%;}
-.smallMsg{margin-top:8px;color:#ffb3b3;font-weight:600;min-height:18px;}
-.closeOverlay{position:absolute;top:10px;right:12px;background:transparent;border:none;color:rgba(255,255,255,0.5);font-size:1.1rem;padding:6px;border-radius:8px;}
-.closeOverlay:hover{color:#fff;background:rgba(255,255,255,0.03);}
-.hiddenVis{display:none!important;}
-/* Prevent background scroll while overlay active */
-body.overlayLocked{overflow:hidden;height:100vh;}
 </style>
 </head>
-<body class="overlayLocked">
-<h1>Calendario Worship PDC</h1>
-<!-- Mantengo tus botones (se controlan por JS) -->
-<button id="loginBtn" class="hidden">Login</button>
-<button id="logoutBtn" class="hidden">Cerrar sesión</button>
-
-<!-- ========== OVERLAY DE ACCESO (BLACK GLASS) ========== -->
-<div id="accessOverlay" role="dialog" aria-modal="true" aria-label="Acceso al sitio">
-  <div class="overlay-card" role="document">
-    <button class="closeOverlay" id="overlayClose" title="Cerrar">&times;</button>
-    <img src="imagen1.jpg" alt="Logo PDC" class="logo" />
-    <h2>Bienvenido a Worship PDC</h2>
-
-    <div class="choiceBtns" id="loginChoices">
-      <button id="visitorChoice">Entrar como Visitante</button>
-      <button id="adminChoice">Login Admin</button>
-    </div>
-
-    <!-- Visitante: solo contraseña -->
-    <div id="visitorBox" class="formBox" aria-hidden="true">
-      <input id="visitorPass" type="password" placeholder="Contraseña visitante" autocomplete="off" />
-      <div class="actions">
-        <button id="visitorSubmit">Entrar</button>
-        <button id="visitorCancel">Volver</button>
-      </div>
-    </div>
-
-    <!-- Admin: usuario + contraseña -->
-    <div id="adminBox" class="formBox" aria-hidden="true">
-      <input id="adminUser" type="text" placeholder="Usuario" autocomplete="off" />
-      <input id="adminPass" type="password" placeholder="Contraseña" autocomplete="off" />
-      <div class="actions">
-        <button id="adminSubmit">Entrar</button>
-        <button id="adminCancel">Volver</button>
-      </div>
-    </div>
-
-    <div id="overlayError" class="smallMsg" aria-live="polite"></div>
+<body>
+<!-- MODAL LOGIN CENTRAL -->
+<div id="mainModal">
+  <div id="modalContent">
+    <img src="imagen1.jpg" alt="Logo Iglesia Puerta del Cielo" style="width:145px;margin-bottom:18px;border-radius:10px;">
+    <div style="font-size:1.19em;font-weight:700;color:#3D4676;letter-spacing:0.4px;margin-bottom:10px;text-align:center;">Acceso a Worship PDC</div>
+    <form id="loginForm" autocomplete="off" style="width:100%;">
+      <label for="user" style="font-weight:600;">Usuario</label>
+      <input type="text" id="user" required autocomplete="username" style="width:98%;padding:7px 8px;font-size:1em;border-radius:6px;border:1.1px solid #b8b8b8;margin-bottom:12px;" autofocus />
+      <label for="pass" style="font-weight:600;">Contraseña</label>
+      <input type="password" id="pass" required autocomplete="current-password" style="width:98%;padding:7px 8px;font-size:1em;border-radius:6px;border:1.1px solid #b8b8b8;margin-bottom:12px;" />
+      <button type="submit" style="background:#4A90E2;color:white;font-weight:600;padding:7px 16px;border:none;border-radius:7px;cursor:pointer;margin-top:8px;">Ingresar</button>
+      <div id="modalErrorMsg" style="color:#D9534F;text-align:center;font-size:0.99em;min-height:18px;padding:2px 0;margin-top:2px;"></div>
+      <div style="margin-top:14px;font-size:0.95em;color:#445;">Usuario visitante: <span style="font-weight:600;">VISITANTE</span><br>Contraseña: <span style="font-weight:600;">pcd2025*</span></div>
+      <div style="margin-top:10px;font-size:0.95em;color:#445;">Usuario admin: <span style="font-weight:600;">ADMINPDC</span><br>Contraseña: <span style="font-weight:600;">worship1039</span></div>
+    </form>
   </div>
 </div>
-<!-- ========== FIN OVERLAY ========== -->
 
-<!-- ========== TU CONTENIDO PRINCIPAL (sin cambios funcionales) ========== -->
-<div id="mainContent" class="hidden">
+<h1>Calendario Worship PDC</h1>
+<button id="loginBtn" style="display:none;">Login</button>
+<button id="logoutBtn" class="hidden">Cerrar sesión</button>
+
+<!-- Login -->
+<div id="loginSection" class="hidden">
+  <img src="imagen1.jpg" alt="Logo PDC" />
+  <h2>Inicio de Sesión</h2>
+  <div id="errorMsg"></div>
+  <input type="text" id="username" placeholder="Usuario" /><br><br>
+  <input type="password" id="password" placeholder="Contraseña" /><br><br>
+  <button id="confirmLogin">Ingresar</button>
+  <button id="cancelLogin">Cancelar</button>
+</div>
+
+<!-- Main -->
+<div id="mainContent">
   <form id="lineForm" class="hidden">
     <table>
       <tr>
@@ -192,14 +151,17 @@ body.overlayLocked{overflow:hidden;height:100vh;}
   <div id="calendarContainer"></div>
 </div>
 
-<!-- Modales y editModal (sin cambios) -->
+<!-- Modales -->
 <div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions" style="text-align:center;"></div><div style="text-align:center;margin-top:12px;"><button id="closeTone">Cerrar</button></div></div></div>
 <div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px;"><button id="saveAssign">Guardar</button><button id="closeAssign">Cerrar</button></div></div></div>
 <div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px;"><button id="closeSearch">Cerrar</button></div></div></div>
 
+<!-- Edit modal (para modificar video, pdf, tono, musicos, fecha) -->
 <div id="editModal" aria-hidden="true">
   <div id="editContent" role="dialog" aria-modal="true" aria-labelledby="editTitle">
     <h3 id="editTitle">Modificar Canción</h3>
+
+    <!-- body (scrolls if content large) -->
     <div class="edit-body">
       <label for="editVideo">Video YouTube</label>
       <input type="url" id="editVideo" placeholder="https://..." />
@@ -211,6 +173,8 @@ body.overlayLocked{overflow:hidden;height:100vh;}
       <label for="editDate">Fecha</label>
       <input type="date" id="editDate" />
     </div>
+
+    <!-- footer (always visible) -->
     <div class="edit-footer">
       <button id="saveEdit">Guardar cambios</button>
       <button id="cancelEdit">Cancelar</button>
@@ -218,9 +182,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
   </div>
 </div>
 
-<!-- ========== SCRIPT (integrado y adaptado) ========== -->
 <script type="module">
-/* Firebase (igual que antes) */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
@@ -237,171 +199,64 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ========== Credenciales (local validation for now) ========== */
-/* NOTA: para producción migrar a Firebase Auth y eliminar credenciales del cliente */
-const VISITOR_PASSWORD = "pdc2025*";          // (queda en el script por ahora)
+// Variables login y permisos
+let loggedIn = false;
+window.modoAcceso = null;
+
+// Elementos DOM originales
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const loginSection = document.getElementById("loginSection");
+const confirmLogin = document.getElementById("confirmLogin");
+const cancelLogin = document.getElementById("cancelLogin");
+const errorMsg = document.getElementById("errorMsg");
+const lineForm = document.getElementById("lineForm");
+const calendarContainer = document.getElementById("calendarContainer");
+
+// LOGIN MODAL CENTRAL
+const loginForm = document.getElementById('loginForm');
+const modalErrorMsg = document.getElementById('modalErrorMsg');
+const VISITOR_USER = "VISITANTE";
+const VISITOR_PASS = "pcd2025*";
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
 
-/* Estado de sesión */
-let loggedIn = false;        // admin
-let visitorLogged = false;   // visitante
+loginForm.onsubmit = function(e){
+  e.preventDefault();
+  const user = document.getElementById('user').value.trim();
+  const pass = document.getElementById('pass').value.trim();
+  if (user===VISITOR_USER && pass===VISITOR_PASS) {
+    window.modoAcceso = 'visitante';
+    loggedIn = true;
+    iniciarSistemaPorLogin();
+  } else if (user===ADMIN_USER && pass===ADMIN_PASS) {
+    window.modoAcceso = 'admin';
+    loggedIn = true;
+    iniciarSistemaPorLogin();
+  } else {
+    modalErrorMsg.textContent = "Usuario o contraseña incorrectos.";
+  }
+};
 
-/* Elementos del overlay */
-const accessOverlay = document.getElementById("accessOverlay");
-const visitorChoice = document.getElementById("visitorChoice");
-const adminChoice = document.getElementById("adminChoice");
-const visitorBox = document.getElementById("visitorBox");
-const adminBox = document.getElementById("adminBox");
-const visitorPass = document.getElementById("visitorPass");
-const adminUser = document.getElementById("adminUser");
-const adminPass = document.getElementById("adminPass");
-const visitorSubmit = document.getElementById("visitorSubmit");
-const visitorCancel = document.getElementById("visitorCancel");
-const adminSubmit = document.getElementById("adminSubmit");
-const adminCancel = document.getElementById("adminCancel");
-const overlayError = document.getElementById("overlayError");
-const overlayClose = document.getElementById("overlayClose");
-
-const mainContent = document.getElementById("mainContent");
-const lineForm = document.getElementById("lineForm");
-const logoutBtn = document.getElementById("logoutBtn");
-
-/* Mantenimiento: evita que se cargue el contenido antes del login.
-   Mostramos overlay al inicio (atributo class body.overlayLocked ya aplicado). */
-function showOverlay() {
-  accessOverlay.style.display = "flex";
-  document.body.classList.add("overlayLocked");
-  overlayError.textContent = "";
-  // reset boxes
-  visitorBox.style.display = "none";
-  adminBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  visitorPass.value = "";
-  adminUser.value = "";
-  adminPass.value = "";
-}
-
-/* Oculta overlay (muestra contenido). */
-function hideOverlay() {
-  accessOverlay.style.display = "none";
-  document.body.classList.remove("overlayLocked");
-}
-
-/* Determina lo que verá cada rol */
-function enterAsVisitor() {
-  visitorLogged = true;
-  loggedIn = false;
-  hideOverlay();
-  mainContent.classList.remove("hidden");
-  lineForm.classList.add("hidden"); // visitante no ve edición
-  logoutBtn.classList.remove("hidden");
-  // renderizamos datos (ahora que el usuario puede ver)
+// Al iniciar por login, muestra contenido y oculta el modal
+function iniciarSistemaPorLogin() {
+  document.getElementById("mainModal").style.display = "none";
+  lineForm.classList.remove("hidden");
   renderSongs();
-  localStorage.setItem("worship_role", "visitor");
-}
-function enterAsAdmin() {
-  visitorLogged = false;
-  loggedIn = true;
-  hideOverlay();
-  mainContent.classList.remove("hidden");
-  lineForm.classList.remove("hidden"); // admin ve edición
-  logoutBtn.classList.remove("hidden");
-  renderSongs();
-  localStorage.setItem("worship_role", "admin");
-}
-
-/* Restaurar sesión si existe */
-function restoreSession() {
-  const role = localStorage.getItem("worship_role");
-  if (role === "admin") {
-    enterAsAdmin();
-  } else if (role === "visitor") {
-    enterAsVisitor();
-  } else {
-    showOverlay();
+  // Oculta botón de asignar y agregar si visitante
+  if(window.modoAcceso==='visitante'){
+    document.getElementById("addLine").style.display = "none";
+    document.getElementById("assignBtn").style.display = "none";
   }
 }
 
-/* Overlay interactions */
-visitorChoice.onclick = () => {
-  document.getElementById("loginChoices").style.display = "none";
-  visitorBox.style.display = "flex";
-  adminBox.style.display = "none";
-  overlayError.textContent = "";
-};
-adminChoice.onclick = () => {
-  document.getElementById("loginChoices").style.display = "none";
-  adminBox.style.display = "flex";
-  visitorBox.style.display = "none";
-  overlayError.textContent = "";
-};
-visitorCancel.onclick = () => {
-  visitorBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  overlayError.textContent = "";
-};
-adminCancel.onclick = () => {
-  adminBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  overlayError.textContent = "";
-};
-overlayClose.onclick = () => {
-  // cerrar overlay no permite ver contenido -> solo útil en pruebas.
-  // Mejor restablecer a choices.
-  visitorBox.style.display = "none";
-  adminBox.style.display = "none";
-  document.getElementById("loginChoices").style.display = "flex";
-  overlayError.textContent = "";
-};
+// ----------- EL RESTO DE TU SCRIPT ORIGINAL -----------
+// ----------------------------------------------
+logoutBtn.onclick = () => { loggedIn = false; logoutBtn.classList.add("hidden"); loginBtn.classList.remove("hidden"); lineForm.classList.add("hidden"); renderSongs(); };
+loginBtn.onclick = () => { loginSection.classList.remove("hidden"); loginBtn.classList.add("hidden"); errorMsg.textContent = ""; };
+cancelLogin.onclick = () => { loginSection.classList.add("hidden"); loginBtn.classList.remove("hidden"); };
 
-/* Validaciones (local) */
-visitorSubmit.onclick = () => {
-  const pass = visitorPass.value.trim();
-  if (!pass) {
-    overlayError.textContent = "Ingresa la contraseña de visitante.";
-    return;
-  }
-  if (pass === VISITOR_PASSWORD) {
-    enterAsVisitor();
-  } else {
-    overlayError.textContent = "Contraseña visitante incorrecta.";
-  }
-};
-
-adminSubmit.onclick = () => {
-  const user = adminUser.value.trim();
-  const pass = adminPass.value.trim();
-  if (!user || !pass) {
-    overlayError.textContent = "Ingresa usuario y contraseña.";
-    return;
-  }
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    enterAsAdmin();
-  } else {
-    overlayError.textContent = "Usuario o contraseña admin incorrectos.";
-  }
-};
-
-/* Logout */
-logoutBtn.onclick = () => {
-  loggedIn = false;
-  visitorLogged = false;
-  localStorage.removeItem("worship_role");
-  // ocultar todo el contenido
-  mainContent.classList.add("hidden");
-  lineForm.classList.add("hidden");
-  logoutBtn.classList.add("hidden");
-  // mostrarse overlay
-  showOverlay();
-};
-
-/* Restaurar sesión al cargar (si el usuario ya estaba logueado) */
-restoreSession();
-
-/* ===================== Resto de tu lógica original (sin tocar funcionalidad) ===================== */
-
-/* Asignar músicos */
+// Asignar músicos
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
 const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
 let selectedMusicians = {};
@@ -436,7 +291,7 @@ saveAssign.onclick = () => {
   alert("Asignaciones guardadas correctamente.");
 };
 
-/* Tono */
+// Tono
 const toneBtn = document.getElementById("toneBtn");
 const toneModal = document.getElementById("toneModal");
 const toneOptions = document.getElementById("toneOptions");
@@ -461,7 +316,7 @@ function buildToneOptions() {
 toneBtn.onclick = () => { buildToneOptions(); toneModal.style.display = "flex"; };
 closeTone.onclick = () => toneModal.style.display = "none";
 
-/* Buscar video */
+// Buscar video
 const searchVideoBtn = document.getElementById("searchVideoBtn");
 const searchModal = document.getElementById("searchModal");
 const videoList = document.getElementById("videoList");
@@ -477,7 +332,7 @@ searchVideoBtn.onclick = async () => {
       const song = docSnap.data();
       if (song.video) {
         const idv = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
-        const iframeHtml = idv ? `<iframe src='https://www.youtube.com/embed/${idv[1]}' frameborder='0'></iframe>` : "";
+        const iframeHtml = idv ? `<iframe src='<https://www.youtube.com/embed/${idv>[1]}' frameborder='0'></iframe>` : "";
         const div = document.createElement("div");
         div.classList.add("video-result");
         div.innerHTML = `${iframeHtml}<div style="flex:1;"><p><strong>${song.date || ''}</strong></p><p style="word-break:break-all;">${song.video}</p></div>`;
@@ -499,7 +354,7 @@ searchVideoBtn.onclick = async () => {
 };
 closeSearch.onclick = () => searchModal.style.display = "none";
 
-/* Upload Gofile */
+// Gofile upload
 async function uploadToGoFile(file) {
   const formData = new FormData();
   formData.append("file", file);
@@ -508,7 +363,7 @@ async function uploadToGoFile(file) {
   return result.data?.downloadPage || "";
 }
 
-/* Edit modal helpers */
+// Edit modal helpers
 const editModal = document.getElementById("editModal");
 const editVideo = document.getElementById("editVideo");
 const editFile = document.getElementById("editFile");
@@ -536,28 +391,11 @@ function buildEditAssignFields(existingMusicos = {}) {
   });
 }
 
-/* Close modal on cancel */
 cancelEdit.onclick = () => { editModal.style.display = "none"; currentEditId = null; currentEditSong = null; };
+editModal.addEventListener('click', (e) => { if (e.target === editModal) { editModal.style.display = 'none'; currentEditId = null; currentEditSong = null; } });
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && editModal.style.display === 'flex') { editModal.style.display = 'none'; currentEditId = null; currentEditSong = null; } });
 
-/* Close modal when clicking outside content */
-editModal.addEventListener('click', (e) => {
-  if (e.target === editModal) {
-    editModal.style.display = 'none';
-    currentEditId = null;
-    currentEditSong = null;
-  }
-});
-
-/* Close modal with Escape key */
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && editModal.style.display === 'flex') {
-    editModal.style.display = 'none';
-    currentEditId = null;
-    currentEditSong = null;
-  }
-});
-
-/* Mostrar canciones */
+// Mostrar canciones con control de permisos en acciones
 async function addSongToDOM(song, id) {
   let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
   if (!block) {
@@ -565,8 +403,8 @@ async function addSongToDOM(song, id) {
     block.classList.add("calendar-block");
     block.dataset.date = song.date;
     block.innerHTML = `<div class="calendar-date">${song.date}</div>
-      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
-    document.getElementById("calendarContainer").appendChild(block);
+      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${(window.modoAcceso === "admin") ? "<th>Acciones</th>" : ""}</tr></thead><tbody></tbody></table>`;
+    calendarContainer.appendChild(block);
   }
 
   const tbody = block.querySelector("tbody");
@@ -575,7 +413,7 @@ async function addSongToDOM(song, id) {
   const tdVideo = document.createElement("td");
   if (song.video) {
     const idv = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
-    tdVideo.innerHTML = idv ? `<iframe src="https://www.youtube.com/embed/${idv[1]}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
+    tdVideo.innerHTML = idv ? `<iframe src="<https://www.youtube.com/embed/${idv>[1]}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
   }
 
   const tdFile = document.createElement("td");
@@ -589,7 +427,8 @@ async function addSongToDOM(song, id) {
 
   tr.append(tdVideo, tdFile, tdChords, tdNote);
 
-  if (loggedIn) {
+  // SOLO ADMIN PUEDE VER/MODIFICAR ACCIONES
+  if (window.modoAcceso === "admin") {
     const tdActions = document.createElement("td");
     tdActions.classList.add("actions");
 
@@ -597,7 +436,6 @@ async function addSongToDOM(song, id) {
     edit.textContent = "Modificar";
     edit.classList.add("edit");
     edit.onclick = () => {
-      // abrir modal de edición y precargar
       currentEditId = id;
       currentEditSong = song;
       editVideo.value = song.video || "";
@@ -605,7 +443,6 @@ async function addSongToDOM(song, id) {
       editFile.value = "";
       editDate.value = song.date || "";
       buildEditAssignFields(song.musicos || {});
-      // show modal (flex to use centering)
       editModal.style.display = "flex";
     };
 
@@ -626,19 +463,17 @@ async function addSongToDOM(song, id) {
   tbody.append(tr);
 }
 
-/* Renderiza canciones (se llama sólo después de login/visitor) */
 async function renderSongs() {
-  document.getElementById("calendarContainer").innerHTML = "";
+  calendarContainer.innerHTML = "";
   try {
     const querySnapshot = await getDocs(collection(db, "songs"));
     querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
   } catch (err) {
     console.error(err);
-    document.getElementById("calendarContainer").innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
+    calendarContainer.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
   }
 }
 
-/* Guardar edición (actualiza el doc existente) */
 saveEdit.onclick = async () => {
   if (!currentEditId) return alert("No hay canción seleccionada.");
   try {
@@ -656,31 +491,26 @@ saveEdit.onclick = async () => {
     if (newDate) updates.date = newDate;
     else if (currentEditSong.date) updates.date = currentEditSong.date;
 
-    // recoger músicos del modal
     const newMusicos = {};
     instruments.forEach(instr => {
       const sel = document.getElementById(`editsel-${instr.replace(/\s+/g,'_')}`);
       if (sel && sel.value) newMusicos[instr] = sel.value;
     });
-    // si se dejó vacío, mantenemos el anterior si existía
     if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
     else if (currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
 
-    // si suben nuevo pdf, subo y agrego fileURL + fileName
     if (editFile.files.length > 0) {
       const file = editFile.files[0];
       const fileURL = await uploadToGoFile(file);
       updates.fileName = file.name;
       updates.fileURL = fileURL;
     } else {
-      // no subió nada nuevo: mantenemos si existía
       if (currentEditSong.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
         if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
       }
     }
 
-    // ejecutar update
     await updateDoc(doc(db, "songs", currentEditId), updates);
     alert("✅ Cambios guardados.");
     editModal.style.display = "none";
@@ -693,7 +523,6 @@ saveEdit.onclick = async () => {
   }
 };
 
-/* Agregar canción */
 document.getElementById("addLine").onclick = async () => {
   const url = document.getElementById("videoURL").value.trim();
   const fileInput = document.getElementById("fileUpload");
@@ -731,8 +560,7 @@ document.getElementById("addLine").onclick = async () => {
   }
 };
 
-/* NOTA: No hay renderSongs() en el arranque.
-   renderSongs() se invoca solo después de login/visitor (enterAsAdmin/enterAsVisitor). */
+renderSongs();
 </script>
 </body>
 </html>

@@ -1,0 +1,11 @@
+# Ver el estado de los archivos
+git status
+
+# Agregar todos los cambios
+git add .
+
+# Crear un nuevo commit con mensaje descriptivo
+git commit -m "Actualización de funciones y diseño"
+
+# Subir los cambios al repositorio remoto
+git push origin main

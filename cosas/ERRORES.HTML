@@ -557,14 +557,15 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-/* Mostrar canciones */
-async function addSongToDOM(song, id) {
-  let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
+/* Mostrar canciones (síncrona para evitar comportamientos inesperados) */
+function addSongToDOM(song, id) {
+  const dateKey = song.date || 'Sin fecha';
+  let block = document.querySelector(`.calendar-block[data-date='${dateKey}']`);
   if (!block) {
     block = document.createElement("div");
     block.classList.add("calendar-block");
-    block.dataset.date = song.date;
-    block.innerHTML = `<div class="calendar-date">${song.date}</div>
+    block.dataset.date = dateKey;
+    block.innerHTML = `<div class="calendar-date">${dateKey}</div>
       <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
     document.getElementById("calendarContainer").appendChild(block);
   }
@@ -576,10 +577,12 @@ async function addSongToDOM(song, id) {
   if (song.video) {
     const idv = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
     tdVideo.innerHTML = idv ? `<iframe src="https://www.youtube.com/embed/${idv[1]}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
+  } else {
+    tdVideo.textContent = "";
   }
 
   const tdFile = document.createElement("td");
-  if (song.fileURL) tdFile.innerHTML = `<a href="${song.fileURL}" target="_blank">${song.fileName}</a>`;
+  if (song.fileURL) tdFile.innerHTML = `<a href="${song.fileURL}" target="_blank" rel="noopener noreferrer">${song.fileName || 'PDF'}</a>`;
 
   const tdChords = document.createElement("td");
   tdChords.textContent = song.chords || "";
@@ -613,9 +616,14 @@ async function addSongToDOM(song, id) {
     del.textContent = "Eliminar";
     del.classList.add("delete");
     del.onclick = async () => {
-      if (confirm("¿Eliminar esta canción?")) {
+      if (!confirm("¿Eliminar esta canción?")) return;
+      try {
         await deleteDoc(doc(db, "songs", id));
+        alert("Canción eliminada correctamente.");
         renderSongs();
+      } catch (err) {
+        console.error(err);
+        alert("Error al eliminar la canción: " + (err.message || err));
       }
     };
 
@@ -626,12 +634,23 @@ async function addSongToDOM(song, id) {
   tbody.append(tr);
 }
 
-/* Renderiza canciones (se llama sólo después de login/visitor) */
+/* Renderiza canciones (se llama sólo después de login/visitor) - ahora ordena por fecha */
 async function renderSongs() {
   document.getElementById("calendarContainer").innerHTML = "";
   try {
     const querySnapshot = await getDocs(collection(db, "songs"));
-    querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
+    const songsArr = [];
+    querySnapshot.forEach(docSnap => {
+      songsArr.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    // orden por fecha (fecha vacía al final)
+    songsArr.sort((a,b) => {
+      const da = a.date || "";
+      const dbb = b.date || "";
+      if (da === dbb) return 0;
+      return da > dbb ? 1 : -1;
+    });
+    songsArr.forEach(s => addSongToDOM(s, s.id));
   } catch (err) {
     console.error(err);
     document.getElementById("calendarContainer").innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
@@ -648,13 +667,13 @@ saveEdit.onclick = async () => {
     const newDate = editDate.value;
 
     if (newVideo) updates.video = newVideo;
-    else if (currentEditSong.video) updates.video = currentEditSong.video;
+    else if (currentEditSong && currentEditSong.video) updates.video = currentEditSong.video;
 
     if (newChords) updates.chords = newChords;
-    else if (currentEditSong.chords) updates.chords = currentEditSong.chords;
+    else if (currentEditSong && currentEditSong.chords) updates.chords = currentEditSong.chords;
 
     if (newDate) updates.date = newDate;
-    else if (currentEditSong.date) updates.date = currentEditSong.date;
+    else if (currentEditSong && currentEditSong.date) updates.date = currentEditSong.date;
 
     // recoger músicos del modal
     const newMusicos = {};
@@ -664,7 +683,7 @@ saveEdit.onclick = async () => {
     });
     // si se dejó vacío, mantenemos el anterior si existía
     if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
-    else if (currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
+    else if (currentEditSong && currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
 
     // si suben nuevo pdf, subo y agrego fileURL + fileName
     if (editFile.files.length > 0) {
@@ -674,7 +693,7 @@ saveEdit.onclick = async () => {
       updates.fileURL = fileURL;
     } else {
       // no subió nada nuevo: mantenemos si existía
-      if (currentEditSong.fileURL) {
+      if (currentEditSong && currentEditSong.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
         if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
       }
@@ -731,8 +750,8 @@ document.getElementById("addLine").onclick = async () => {
   }
 };
 
-/* NOTA: No hay renderSongs() en el arranque.
-   renderSongs() se invoca solo después de login/visitor (enterAsAdmin/enterAsVisitor). */
+/* NOTA: renderSongs() se invoca solo después de login/visitor (enterAsAdmin/enterAsVisitor). */
 </script>
 </body>
 </html>
+

@@ -80,35 +80,107 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
   .edit-footer button{min-width:100px; font-size:0.85em;}
 }
 
-/* ========== OVERLAY BLACK GLASS LOGIN ========== */
+/* ========== OVERLAY MEJORADO (integrado) ========== */
+
+/* Base overlay container (replaces black-glass with dynamic golden radial + motion) */
 #accessOverlay{
   position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;
-  background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.85));
-  backdrop-filter: blur(6px);
-  transition:opacity 360ms ease;
+  /* dynamic radial gradient with a warm golden spot */
+  background: radial-gradient(circle at 30% 30%, rgba(255, 235, 59, 0.12), rgba(0,0,0,0.9));
+  backdrop-filter: blur(6px) saturate(1.02);
+  transition:opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+  /* subtle scaling float so overlay feels alive */
+  animation: overlayFloat 6s ease-in-out infinite alternate;
+  padding:20px;
 }
+
+/* animate background shift + gentle scale */
+@keyframes overlayFloat {
+  from {
+    background-position: 0% 0%;
+    transform: scale(1);
+  }
+  to {
+    background-position: 100% 100%;
+    transform: scale(1.02);
+  }
+}
+
+/* make the overlay-card pop with layered glass + soft glow */
 .overlay-card{
-  width:100%;max-width:540px;border-radius:14px;padding:28px;box-sizing:border-box;
-  background:linear-gradient(180deg, rgba(10,10,12,0.6), rgba(6,6,8,0.45));
+  width:100%;max-width:560px;border-radius:14px;padding:28px;box-sizing:border-box;
+  background: linear-gradient(180deg, rgba(20,18,16,0.55), rgba(10,10,12,0.35));
   border:1px solid rgba(255,255,255,0.06);
-  box-shadow:0 12px 40px rgba(0,0,0,0.6);
+  box-shadow:0 20px 50px rgba(0,0,0,0.6), 0 0 80px rgba(255,215,0,0.03) inset;
   color:#fff;text-align:center;position:relative;overflow:hidden;
   backdrop-filter: blur(10px) saturate(1.05);
+  transform-origin:center;
+  /* soft entrance */
+  animation: cardEntrance 700ms cubic-bezier(.2,.9,.3,1) both;
 }
-.overlay-card .logo{width:220px;margin:0 auto 18px auto;display:block;filter:drop-shadow(0 8px 30px rgba(0,0,0,0.6));}
-.overlay-card h2{margin:4px 0 14px 0;font-size:1.35rem;color:#ffd54a;}
+
+/* entrance animation for the card */
+@keyframes cardEntrance {
+  from { opacity:0; transform: translateY(18px) scale(0.985); filter:blur(6px); }
+  to   { opacity:1; transform: translateY(0) scale(1); filter:blur(0); }
+}
+
+/* glowing yellow text for headings and messages inside the overlay */
+#accessOverlay h2,
+#accessOverlay label,
+#accessOverlay p,
+#accessOverlay .smallMsg {
+  color: #ffeb3b;
+  text-shadow: 0 0 8px #ffe600, 0 0 15px #ffea00;
+  animation: textGlow 2s ease-in-out infinite alternate;
+}
+
+/* text glow animation */
+@keyframes textGlow {
+  from {
+    text-shadow: 0 0 5px #fff200, 0 0 15px #ffea00, 0 0 30px #ffec3b;
+  }
+  to {
+    text-shadow: 0 0 15px #fff56b, 0 0 30px #ffe600, 0 0 50px #ffee33;
+  }
+}
+
+/* logo highlight */
+.overlay-card .logo{width:220px;margin:0 auto 18px auto;display:block;filter:drop-shadow(0 12px 30px rgba(255,200,0,0.12));transform:translateZ(0);}
+
+/* choice buttons get a warm gold gradient and glow */
 .choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
-.choiceBtns button{min-width:140px;padding:10px 14px;border-radius:10px;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#fff;}
-.choiceBtns button:hover{background:rgba(255,255,255,0.08);}
-.formBox{margin-top:8px;display:none;flex-direction:column;align-items:center;gap:8px;}
-.formBox input{width:90%;padding:10px;border-radius:8px;border:none;background:rgba(255,255,255,0.04);color:#fff;text-align:center;font-size:0.95rem;}
-.formBox .row{display:flex;gap:8px;width:90%;}
-.formBox .row input{flex:1;}
-.formBox .actions{display:flex;gap:8px;justify-content:center;width:90%;}
-.smallMsg{margin-top:8px;color:#ffb3b3;font-weight:600;min-height:18px;}
-.closeOverlay{position:absolute;top:10px;right:12px;background:transparent;border:none;color:rgba(255,255,255,0.5);font-size:1.1rem;padding:6px;border-radius:8px;}
-.closeOverlay:hover{color:#fff;background:rgba(255,255,255,0.03);}
-.hiddenVis{display:none!important;}
+.choiceBtns button{
+  min-width:140px;padding:10px 14px;border-radius:12px;font-size:1rem;
+  background: linear-gradient(90deg, #ffd54a 0%, #ffca28 50%, #ffd54a 100%);
+  border:1px solid rgba(255,255,255,0.06);
+  color:#1a1200;font-weight:700;
+  box-shadow: 0 6px 22px rgba(255,209,88,0.12), 0 0 12px rgba(255,233,100,0.06) inset;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.choiceBtns button:hover{
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(255,215,0,0.18), 0 0 30px rgba(255,235,120,0.10);
+}
+
+/* form inputs inside overlay: brighter & inset golden glow */
+.formBox input{
+  width:90%;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,0.06);color:#fff;text-align:center;font-size:0.95rem;
+  box-shadow: inset 0 0 14px rgba(255,235,59,0.06);
+}
+.formBox .actions button{
+  padding:8px 12px;border-radius:10px;border:none;background:linear-gradient(90deg,#ffd54a,#ffcc00);color:#111;font-weight:700;
+  cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;
+}
+.formBox .actions button:hover{ transform:translateY(-3px); box-shadow:0 10px 30px rgba(255,215,0,0.12); }
+
+/* close button: subtle white on dark but brighter on hover */
+.closeOverlay{position:absolute;top:10px;right:12px;background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:1.2rem;padding:8px;border-radius:8px;transition:background .15s,color .15s;}
+.closeOverlay:hover{color:#fff;background:rgba(255,255,255,0.04);}
+
+/* overlay error message brighter */
+#overlayError{ color:#fff9c4; font-weight:700; text-shadow:0 0 6px rgba(255,235,59,0.25); min-height:20px; margin-top:6px; }
+
 /* Prevent background scroll while overlay active */
 body.overlayLocked{overflow:hidden;height:100vh;}
 </style>
@@ -119,7 +191,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
 <button id="loginBtn" class="hidden">Login</button>
 <button id="logoutBtn" class="hidden">Cerrar sesión</button>
 
-<!-- ========== OVERLAY DE ACCESO (BLACK GLASS) ========== -->
+<!-- ========== OVERLAY DE ACCESO (BLACK GLASS mejorado con efectos dorados) ========== -->
 <div id="accessOverlay" role="dialog" aria-modal="true" aria-label="Acceso al sitio">
   <div class="overlay-card" role="document">
     <button class="closeOverlay" id="overlayClose" title="Cerrar">&times;</button>
@@ -127,16 +199,16 @@ body.overlayLocked{overflow:hidden;height:100vh;}
     <h2>Bienvenido a Worship PDC</h2>
 
     <div class="choiceBtns" id="loginChoices">
-      <button id="visitorChoice">Entrar como Visitante</button>
-      <button id="adminChoice">Login Admin</button>
+      <button id="visitorChoice" type="button">Entrar como Visitante</button>
+      <button id="adminChoice" type="button">Login Admin</button>
     </div>
 
     <!-- Visitante: solo contraseña -->
     <div id="visitorBox" class="formBox" aria-hidden="true">
       <input id="visitorPass" type="password" placeholder="Contraseña visitante" autocomplete="off" />
-      <div class="actions">
-        <button id="visitorSubmit">Entrar</button>
-        <button id="visitorCancel">Volver</button>
+      <div class="actions" style="display:flex;gap:8px;justify-content:center;width:100%;">
+        <button id="visitorSubmit" type="button">Entrar</button>
+        <button id="visitorCancel" type="button" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.06);">Volver</button>
       </div>
     </div>
 
@@ -144,9 +216,9 @@ body.overlayLocked{overflow:hidden;height:100vh;}
     <div id="adminBox" class="formBox" aria-hidden="true">
       <input id="adminUser" type="text" placeholder="Usuario" autocomplete="off" />
       <input id="adminPass" type="password" placeholder="Contraseña" autocomplete="off" />
-      <div class="actions">
-        <button id="adminSubmit">Entrar</button>
-        <button id="adminCancel">Volver</button>
+      <div class="actions" style="display:flex;gap:8px;justify-content:center;width:100%;">
+        <button id="adminSubmit" type="button">Entrar</button>
+        <button id="adminCancel" type="button" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.06);">Volver</button>
       </div>
     </div>
 
@@ -192,7 +264,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
   <div id="calendarContainer"></div>
 </div>
 
-<!-- Modales y editModal (sin cambios) -->
+<!-- Modales y editModal (sin cambios funcionales) -->
 <div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions" style="text-align:center;"></div><div style="text-align:center;margin-top:12px;"><button id="closeTone">Cerrar</button></div></div></div>
 <div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px;"><button id="saveAssign">Guardar</button><button id="closeAssign">Cerrar</button></div></div></div>
 <div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px;"><button id="closeSearch">Cerrar</button></div></div></div>
@@ -222,8 +294,8 @@ body.overlayLocked{overflow:hidden;height:100vh;}
 <script type="module">
 /* Firebase (igual que antes) */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
+import {
+  getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -557,14 +629,15 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-/* Mostrar canciones */
-async function addSongToDOM(song, id) {
-  let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
+/* Mostrar canciones (síncrona para evitar comportamientos inesperados) */
+function addSongToDOM(song, id) {
+  const dateKey = song.date || 'Sin fecha';
+  let block = document.querySelector(`.calendar-block[data-date='${dateKey}']`);
   if (!block) {
     block = document.createElement("div");
     block.classList.add("calendar-block");
-    block.dataset.date = song.date;
-    block.innerHTML = `<div class="calendar-date">${song.date}</div>
+    block.dataset.date = dateKey;
+    block.innerHTML = `<div class="calendar-date">${dateKey}</div>
       <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
     document.getElementById("calendarContainer").appendChild(block);
   }
@@ -576,10 +649,12 @@ async function addSongToDOM(song, id) {
   if (song.video) {
     const idv = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
     tdVideo.innerHTML = idv ? `<iframe src="https://www.youtube.com/embed/${idv[1]}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
+  } else {
+    tdVideo.textContent = "";
   }
 
   const tdFile = document.createElement("td");
-  if (song.fileURL) tdFile.innerHTML = `<a href="${song.fileURL}" target="_blank">${song.fileName}</a>`;
+  if (song.fileURL) tdFile.innerHTML = `<a href="${song.fileURL}" target="_blank" rel="noopener noreferrer">${song.fileName || 'PDF'}</a>`;
 
   const tdChords = document.createElement("td");
   tdChords.textContent = song.chords || "";
@@ -613,9 +688,14 @@ async function addSongToDOM(song, id) {
     del.textContent = "Eliminar";
     del.classList.add("delete");
     del.onclick = async () => {
-      if (confirm("¿Eliminar esta canción?")) {
+      if (!confirm("¿Eliminar esta canción?")) return;
+      try {
         await deleteDoc(doc(db, "songs", id));
+        alert("Canción eliminada correctamente.");
         renderSongs();
+      } catch (err) {
+        console.error(err);
+        alert("Error al eliminar la canción: " + (err.message || err));
       }
     };
 
@@ -626,12 +706,23 @@ async function addSongToDOM(song, id) {
   tbody.append(tr);
 }
 
-/* Renderiza canciones (se llama sólo después de login/visitor) */
+/* Renderiza canciones (se llama sólo después de login/visitor) - ahora ordena por fecha */
 async function renderSongs() {
   document.getElementById("calendarContainer").innerHTML = "";
   try {
     const querySnapshot = await getDocs(collection(db, "songs"));
-    querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
+    const songsArr = [];
+    querySnapshot.forEach(docSnap => {
+      songsArr.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    // orden por fecha (fecha vacía al final)
+    songsArr.sort((a,b) => {
+      const da = a.date || "";
+      const dbb = b.date || "";
+      if (da === dbb) return 0;
+      return da > dbb ? 1 : -1;
+    });
+    songsArr.forEach(s => addSongToDOM(s, s.id));
   } catch (err) {
     console.error(err);
     document.getElementById("calendarContainer").innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
@@ -648,13 +739,13 @@ saveEdit.onclick = async () => {
     const newDate = editDate.value;
 
     if (newVideo) updates.video = newVideo;
-    else if (currentEditSong.video) updates.video = currentEditSong.video;
+    else if (currentEditSong && currentEditSong.video) updates.video = currentEditSong.video;
 
     if (newChords) updates.chords = newChords;
-    else if (currentEditSong.chords) updates.chords = currentEditSong.chords;
+    else if (currentEditSong && currentEditSong.chords) updates.chords = currentEditSong.chords;
 
     if (newDate) updates.date = newDate;
-    else if (currentEditSong.date) updates.date = currentEditSong.date;
+    else if (currentEditSong && currentEditSong.date) updates.date = currentEditSong.date;
 
     // recoger músicos del modal
     const newMusicos = {};
@@ -664,7 +755,7 @@ saveEdit.onclick = async () => {
     });
     // si se dejó vacío, mantenemos el anterior si existía
     if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
-    else if (currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
+    else if (currentEditSong && currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
 
     // si suben nuevo pdf, subo y agrego fileURL + fileName
     if (editFile.files.length > 0) {
@@ -674,7 +765,7 @@ saveEdit.onclick = async () => {
       updates.fileURL = fileURL;
     } else {
       // no subió nada nuevo: mantenemos si existía
-      if (currentEditSong.fileURL) {
+      if (currentEditSong && currentEditSong.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
         if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
       }
@@ -731,8 +822,7 @@ document.getElementById("addLine").onclick = async () => {
   }
 };
 
-/* NOTA: No hay renderSongs() en el arranque.
-   renderSongs() se invoca solo después de login/visitor (enterAsAdmin/enterAsVisitor). */
+/* NOTA: renderSongs() se invoca solo después de login/visitor (enterAsAdmin/enterAsVisitor). */
 </script>
 </body>
 </html>
