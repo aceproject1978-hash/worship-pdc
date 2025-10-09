@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Calendario Worship PDC</title>
+<style>
+/* Mantiene tu estilo original */
+body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px;}
+h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5);user-select:none;}
+.hidden{display:none;}
+form,.calendar-block{width:100%;max-width:1100px;margin:0 auto 15px auto;}
+table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed;}
+table th:nth-child(1),table td:nth-child(1){width:18%;}
+table th:nth-child(2),table td:nth-child(2){width:28%;}
+table th:nth-child(3),table td:nth-child(3){width:12%;}
+table th:nth-child(4),table td:nth-child(4){width:25%;}
+table th:nth-child(5),table td:nth-child(5){width:10%;}
+table th:nth-child(6),table td:nth-child(6){width:7%;}
+th,td{border:1px solid #ccc;padding:5px 6px;text-align:center;vertical-align:middle;font-size:0.9em;}
+th{background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;font-weight:600;}
+input[type=text],input[type=url],input[type=date],input[type=password],input[type=file]{width:95%;padding:4px 5px;border-radius:4px;border:1px solid #bbb;font-size:0.85em;box-sizing:border-box;}
+button{background-color:#4A90E2;border:none;color:white;padding:5px 10px;font-size:0.85em;font-weight:600;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;}
+button:hover{background-color:#357ABD;}
+.assign-green{background-color:#28a745;color:white;font-weight:600;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;display:block;margin:5px auto;}
+.assign-green:hover{background-color:#218838;}
+iframe{max-width:180px;height:90px;display:block;margin:4px auto;border-radius:6px;}
+a{word-break:break-word;display:inline-block;font-size:0.8em;color:#274D87;text-decoration:none;}
+a:hover{text-decoration:underline;}
+.actions button{margin:2px 4px;font-size:0.75em;padding:3px 6px;border-radius:4px;}
+.actions .edit{background-color:#F0AD4E;}
+.actions .delete{background-color:#D9534F;}
+/* Eliminado el login interno (lo reemplazamos por overlay) */
+#loginSection{display:none;} 
+#errorMsg{color:#D9534F;text-align:center;margin-bottom:8px;}
+.calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);}
+.calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em;}
+#logoutBtn{position:absolute;top:15px;right:25px;}
+
+/* Modal backdrops (preservadas) */
+#assignModal,#searchModal,#toneModal,#editModal{
+  position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;
+  align-items:center;justify-content:center;z-index:1000;padding:20px;box-sizing:border-box;
+}
+#assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;}
+#assignContent{width:280px;}
+#searchContent{width:500px;max-height:80vh;overflow-y:auto;}
+#toneContent{width:300px;}
+#editContent{
+  width:420px; max-width:100%; max-height:85vh; display:flex; flex-direction:column;
+  gap:8px; padding:12px 14px;
+}
+#assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px;}
+.assign-item{margin:6px 0;display:flex;flex-direction:column;}
+.assign-item label{font-weight:bold;margin-bottom:3px;}
+.assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;}
+td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
+.video-result{display:flex;align-items:center;gap:10px;border-bottom:1px solid #ccc;padding:8px;}
+.video-result iframe{width:120px;height:70px;}
+.video-result button{background:#28a745;padding:4px 8px;font-size:0.75em;}
+.tone-btn{margin-left:4px;padding:4px 7px;font-size:0.9em;border-radius:6px;background:#4A90E2;color:#fff;cursor:pointer;border:none;}
+.tone-option{display:inline-block;margin:6px 6px;padding:6px 10px;background:#f0f0f0;border-radius:5px;cursor:pointer;}
+.tone-option:hover{background:#4A90E2;color:#fff;}
+
+/* Scrollable body inside edit modal */
+.edit-body{overflow:auto; padding-right:6px;}
+
+/* Footer always visible inside modal */
+.edit-footer{
+  display:flex; gap:10px; justify-content:center; align-items:center; padding-top:8px;
+  border-top:1px solid #eee; margin-top:6px; background:transparent; flex-shrink:0;
+}
+.edit-footer button{min-width:120px;}
+
+/* Small screens adjustments */
+@media (max-width:480px){
+  #editContent{width:100%; padding:10px;}
+  .edit-footer button{min-width:100px; font-size:0.85em;}
+}
+
+/* ========== OVERLAY PRE-LOGIN (glass negro + humo sutil) ========== */
+#preLoginOverlay{
+  position:fixed;inset:0;
+  background:rgba(5,5,8,0.78);
+  backdrop-filter: blur(10px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;padding:20px;box-sizing:border-box;
+  animation:overlayIn 360ms ease;
+}
+#preLoginOverlay.fadeOut{
+  animation:overlayOut 600ms ease forwards;
+}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes overlayOut{from{opacity:1}to{opacity:0;visibility:hidden}}
+.overlayGlass{
+  width:100%;max-width:480px;border-radius:16px;padding:28px 26px;
+  background:linear-gradient(180deg, rgba(16,16,20,0.6), rgba(8,8,10,0.5));
+  border:1px solid rgba(255,255,255,0.06);
+  box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  color:#fff;text-align:center;position:relative;overflow:hidden;
+  backdrop-filter: blur(8px) saturate(1.05);
+}
+/* sutil "humo" - animación muy leve */
+.overlayGlass::before{
+  content:"";position:absolute;inset:-30% -10% auto -10%;
+  height:220%;background:
+    radial-gradient(40% 30% at 10% 20%, rgba(255,255,255,0.03), transparent 15%),
+    radial-gradient(30% 25% at 80% 80%, rgba(255,255,255,0.02), transparent 20%);
+  transform:scale(1.05);
+  animation:mistMove 14s linear infinite;
+  pointer-events:none;
+}
+@keyframes mistMove{
+  0%{transform:translateY(0) scale(1.05);}
+  50%{transform:translateY(-6%) scale(1.07);}
+  100%{transform:translateY(0) scale(1.05);}
+}
+.overlayLogo{width:140px;margin:6px auto 12px auto;filter:drop-shadow(0 6px 20px rgba(74,144,226,0.15));}
+.overlayGlass h2{margin:6px 0 18px 0;color:#CFE8FF;font-weight:700;text-shadow:0 2px 12px rgba(52,120,200,0.08);}
+.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.choiceBtns button{min-width:150px;padding:10px 14px;border-radius:10px;font-size:1rem;}
+.formBox{margin-top:16px;display:none;flex-direction:column;align-items:center;gap:8px;}
+.formBox input{min-width:220px;padding:8px;border-radius:8px;border:none;background:rgba(255,255,255,0.06);color:#fff;text-align:center;}
+.formBox button{padding:8px 12px;border-radius:8px;}
+.overlayMsg{margin-top:8px;color:#ff8b8b;font-weight:600;min-height:18px;}
+/* evitar scroll de fondo mientras overlay esté visible */
+body.overlayLocked{overflow:hidden;}
+</style>
+</head>
+<body class="overlayLocked">
+<h1>Calendario Worship PDC</h1>
+<!-- Eliminado el botón Login (lo pediste). Solo queda Logout para Admin -->
+<button id="logoutBtn" class="hidden">Cerrar sesión</button>
+
+<!-- ========== OVERLAY PRE-LOGIN ========== -->
+<div id="preLoginOverlay" role="dialog" aria-modal="true">
+  <div class="overlayGlass" role="document">
+    <img src="imagen1.jpg" alt="Logo PDC" class="overlayLogo" />
+    <h2>Bienvenido a Worship PDC</h2>
+
+    <div id="loginChoices" class="choiceBtns">
+      <button id="visitorChoice">Entrar como Visitante</button>
+      <button id="adminChoice">Login Admin</button>
+    </div>
+
+    <!-- Visitante -->
+    <div id="visitorBox" class="formBox" aria-hidden="true">
+      <input id="visitorPass" type="password" placeholder="Contraseña visitante" />
+      <button id="visitorSubmit">Entrar</button>
+    </div>
+
+    <!-- Admin -->
+    <div id="adminBox" class="formBox" aria-hidden="true">
+      <input id="adminUser" type="text" placeholder="Usuario" />
+      <input id="adminPass" type="password" placeholder="Contraseña admin" />
+      <button id="adminSubmit">Entrar</button>
+    </div>
+
+    <div id="preLoginError" class="overlayMsg" aria-live="polite"></div>
+  </div>
+</div>
+<!-- ========== FIN OVERLAY ========== -->
+
+<!-- Main (tu código original) -->
+<div id="mainContent">
+  <form id="lineForm" class="hidden">
+    <table>
+      <tr>
+        <th>Video YouTube</th>
+        <th>Cifrado PDF</th>
+        <th>Tono</th>
+        <th>Músicos</th>
+        <th>Fecha</th>
+        <th class="action-header">Acción</th>
+      </tr>
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <input type="url" id="videoURL" placeholder="https://..."/>
+            <button type="button" id="searchVideoBtn">Buscar</button>
+          </div>
+        </td>
+        <td><input type="file" id="fileUpload" accept="application/pdf"/></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:5px;justify-content:center;">
+            <input type="text" id="chords" placeholder="Ej: G - D - Em"/>
+            <button type="button" id="toneBtn" class="tone-btn" title="Elegir tono">🎵</button>
+          </div>
+        </td>
+        <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
+        <td><input type="date" id="customDate"/></td>
+        <td class="action-cell"><button type="button" id="addLine">Agregar</button></td>
+      </tr>
+    </table>
+  </form>
+
+  <h2 style="text-align:center;color:#4A90E2;">Lista multimedia</h2>
+  <div id="calendarContainer"></div>
+</div>
+
+<script type="module">
+// Insert the script content as needed, keeping it intact from your original code.
+</script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calendario Worship PDC</title>
+  <style>
+    /* Estilos generales */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9fb;
+      color: #333;
+      margin: 15px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4A90E2;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 1px 1px 2px rgba(74,144,226,0.5);
+      user-select: none;
+    }
+
+    .hidden { display: none; }
+    .calendar-block {
+      border: 2px solid #4A90E2;
+      border-radius: 8px;
+      background: #fff;
+      margin-bottom: 15px;
+      box-shadow: 0 0 8px rgba(74,144,226,0.1);
+    }
+
+    .calendar-date {
+      background: #4A90E2;
+      color: white;
+      padding: 5px;
+      border-radius: 8px 8px 0 0;
+      font-weight: 600;
+      text-align: center;
+      font-size: 1em;
+    }
+
+    #logoutBtn {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+    }
+
+    /* Modales y Overlay */
+    #preLoginOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 5, 8, 0.78);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+      box-sizing: border-box;
+      animation: overlayIn 360ms ease;
+    }
+
+    @keyframes overlayIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    #preLoginOverlay.fadeOut {
+      animation: overlayOut 600ms ease forwards;
+    }
+
+    @keyframes overlayOut {
+      from { opacity: 1; }
+      to { opacity: 0; visibility: hidden; }
+    }
+
+    .overlayGlass {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 16px;
+      padding: 28px 26px;
+      background: linear-gradient(180deg, rgba(16, 16, 20, 0.6), rgba(8, 8, 10, 0.5));
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      color: #fff;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(8px) saturate(1.05);
+    }
+
+    .overlayGlass::before {
+      content: "";
+      position: absolute;
+      inset: -30% -10% auto -10%;
+      height: 220%;
+      background:
+        radial-gradient(40% 30% at 10% 20%, rgba(255, 255, 255, 0.03), transparent 15%),
+        radial-gradient(30% 25% at 80% 80%, rgba(255, 255, 255, 0.02), transparent 20%);
+      transform: scale(1.05);
+      animation: mistMove 14s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes mistMove {
+      0% { transform: translateY(0) scale(1.05); }
+      50% { transform: translateY(-6%) scale(1.07); }
+      100% { transform: translateY(0) scale(1.05); }
+    }
+
+    .overlayLogo {
+      width: 140px;
+      margin: 6px auto 12px auto;
+      filter: drop-shadow(0 6px 20px rgba(74, 144, 226, 0.15));
+    }
+
+    .overlayGlass h2 {
+      margin: 6px 0 18px 0;
+      color: #CFE8FF;
+      font-weight: 700;
+      text-shadow: 0 2px 12px rgba(52, 120, 200, 0.08);
+    }
+
+    .choiceBtns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .choiceBtns button {
+      min-width: 150px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 1rem;
+      background-color: #4A90E2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .choiceBtns button:hover {
+      background-color: #357ABD;
+      transform: scale(1.03);
+    }
+
+    .formBox {
+      margin-top: 16px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .formBox input {
+      min-width: 220px;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      text-align: center;
+    }
+
+    .formBox button {
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .overlayMsg {
+      margin-top: 8px;
+      color: #ff8b8b;
+      font-weight: 600;
+      min-height: 18px;
+    }
+
+    body.overlayLocked {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="overlayLocked">
+
+<h1>Calendario Worship PDC</h1>
+<button id="logoutBtn" class="hidden">Cerrar sesión</button>
+
+<!-- OVERLAY PRE-LOGIN -->
+<div id="preLoginOverlay" role="dialog" aria-modal="true">
+  <div class="overlayGlass" role="document">
+    <img src="imagen1.jpg" alt="Logo PDC" class="overlayLogo" />
+    <h2>Bienvenido a Worship PDC</h2>
+    <div id="loginChoices" class="choiceBtns">
+      <button id="visitorChoice">Entrar como Visitante</button>
+      <button id="adminChoice">Login Admin</button>
+    </div>
+    <div id="visitorBox" class="formBox" aria-hidden="true">
+      <input id="visitorPass" type="password" placeholder="Contraseña visitante" />
+      <button id="visitorSubmit">Entrar</button>
+    </div>
+    <div id="adminBox" class="formBox" aria-hidden="true">
+      <input id="adminUser" type="text" placeholder="Usuario" />
+      <input id="adminPass" type="password" placeholder="Contraseña admin" />
+      <button id="adminSubmit">Entrar</button>
+    </div>
+    <div id="preLoginError" class="overlayMsg" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent">
+  <form id="lineForm" class="hidden">
+    <table>
+      <tr>
+        <th>Video YouTube</th>
+        <th>Cifrado PDF</th>
+        <th>Tono</th>
+        <th>Músicos</th>
+        <th>Fecha</th>
+        <th class="action-header">Acción</th>
+      </tr>
+      <tr>
+        <td><div style="display:flex;align-items:center;gap:5px;"><input type="url" id="videoURL" placeholder="https://..."/><button type="button" id="searchVideoBtn">Buscar</button></div></td>
+        <td><input type="file" id="fileUpload" accept="application/pdf"/></td>
+        <td><div style="display:flex;align-items:center;gap:5px;justify-content:center;"><input type="text" id="chords" placeholder="Ej: G - D - Em"/><button type="button" id="toneBtn" class="tone-btn" title="Elegir tono">🎵</button></div></td>
+        <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
+        <td><input type="date" id="customDate"/></td>
+        <td class="action-cell"><button type="button" id="addLine">Agregar</button></td>
+      </tr>
+    </table>
+  </form>
+
+  <h2 style="text-align:center;color:#4A90E2;">Lista multimedia</h2>
+  <div id="calendarContainer"></div>
+</div>
+
+<script type="module">
+  // Firebase Configuration and Initialization
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDhWpUt9cfxa21T8ijfUCIJuApWBBaBUJQ",
+    authDomain: "worship-pdc.firebaseapp.com",
+    projectId: "worship-pdc",
+    storageBucket: "worship-pdc.appspot.com",
+    messagingSenderId: "132891019857",
+    appId: "1:132891019857:web:3d72cfe959a8d14cdf4670"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const USERNAME = "ADMINPDC";
+  const PASSWORD = "worship1039";
+  let loggedIn = false;
+
+  const preLoginOverlay = document.getElementById("preLoginOverlay");
+  const visitorChoice = document.getElementById("visitorChoice");
+  const adminChoice = document.getElementById("adminChoice");
+  const visitorBox = document.getElementById("visitorBox");
+  const adminBox = document.getElementById("adminBox");
+  const visitorPass = document.getElementById("visitorPass");
+  const adminUser = document.getElementById("adminUser");
+  const adminPass = document.getElementById("adminPass");
+  const visitorSubmit = document.getElementById("visitorSubmit");
+  const adminSubmit = document.getElementById("adminSubmit");
+  const preLoginError = document.getElementById("preLoginError");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  visitorChoice.onclick = () => {
+    visitorBox.style.display = "flex";
+    adminBox.style.display = "none";
+    preLoginError.textContent = "";
+  };
+
+  adminChoice.onclick = () => {
+    adminBox.style.display = "flex";
+    visitorBox.style.display = "none";
+    preLoginError.textContent = "";
+  };
+
+  visitorSubmit.onclick = () => {
+    if (visitorPass.value.trim() === "pdc2025*") {
+      enterMode(false);
+    } else {
+      preLoginError.textContent = "Contraseña visitante incorrecta.";
+    }
+  };
+
+  adminSubmit.onclick = () => {
+    if (adminUser.value.trim() === USERNAME && adminPass.value.trim() === PASSWORD) {
+      enterMode(true);
+    } else {
+      preLoginError.textContent = "Usuario o contraseña admin incorrectos.";
+    }
+  };
+
+  function enterMode(isAdmin) {
+    loggedIn = !!isAdmin;
+    preLoginOverlay.classList.add("fadeOut");
+    document.body.classList.remove("overlayLocked");
+
+    setTimeout(() => {
+      preLoginOverlay.style.display = "none";
+      if (loggedIn) {
+        document.getElementById("lineForm").classList.remove("hidden");
+        logoutBtn.classList.remove("hidden");
+      } else {
+        document.getElementById("lineForm").classList.add("hidden");
+        logoutBtn.classList.add("hidden");
+      }
+      renderSongs();
+    }, 620);
+  }
+
+  logoutBtn.onclick = () => {
+    loggedIn = false;
+    preLoginOverlay.style.display = "flex";
+    preLoginOverlay.classList.remove("fadeOut");
+    visitorBox.style.display = "none";
+    adminBox.style.display = "none";
+    preLoginError.textContent = "";
+    document.body.classList.add("overlayLocked");
+    document.getElementById("lineForm").classList.add("hidden");
+    logoutBtn.classList.add("hidden");
+    renderSongs();
+  };
+
+  // Funciones Firebase y demás lógica para manejar canciones, asignación de músicos, etc.
+  // [Aquí va el resto de tu código de Firebase para manejar canciones, músicos, videos, etc.]
+</script>
+</body>
+</html>

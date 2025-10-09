@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Calendario Worship PDC</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+/* ========== TU ESTILO ORIGINAL (sin tocar funcionalidad) ========== */
+body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px;}
+h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5);user-select:none;}
+.hidden{display:none;}
+form,.calendar-block{width:100%;max-width:1100px;margin:0 auto 15px auto;}
+table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed;}
+table th:nth-child(1),table td:nth-child(1){width:18%;}
+table th:nth-child(2),table td:nth-child(2){width:28%;}
+table th:nth-child(3),table td:nth-child(3){width:12%;}
+table th:nth-child(4),table td:nth-child(4){width:25%;}
+table th:nth-child(5),table td:nth-child(5){width:10%;}
+table th:nth-child(6),table td:nth-child(6){width:7%;}
+th,td{border:1px solid #ccc;padding:5px 6px;text-align:center;vertical-align:middle;font-size:0.9em;}
+th{background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;font-weight:600;}
+input[type=text],input[type=url],input[type=date],input[type=password],input[type=file]{width:95%;padding:4px 5px;border-radius:4px;border:1px solid #bbb;font-size:0.85em;box-sizing:border-box;}
+button{background-color:#4A90E2;border:none;color:white;padding:5px 10px;font-size:0.85em;font-weight:600;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;}
+button:hover{background-color:#357ABD;}
+.assign-green{background-color:#28a745;color:white;font-weight:600;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;display:block;margin:5px auto;}
+.assign-green:hover{background-color:#218838;}
+iframe{max-width:180px;height:90px;display:block;margin:4px auto;border-radius:6px;}
+a{word-break:break-word;display:inline-block;font-size:0.8em;color:#274D87;text-decoration:none;}
+a:hover{text-decoration:underline;}
+.actions button{margin:2px 4px;font-size:0.75em;padding:3px 6px;border-radius:4px;}
+.actions .edit{background-color:#F0AD4E;}
+.actions .delete{background-color:#D9534F;}
+#loginSection{max-width:360px;margin:50px auto;padding:20px;border-radius:10px;background:rgba(255,255,255,0.95);box-shadow:0 6px 20px rgba(0,0,0,0.15);border:1px solid rgba(74,144,226,0.3);text-align:center;}
+#loginSection img{width:150px;margin-bottom:10px;}
+#loginSection h2{margin-bottom:10px;color:#4A90E2;text-align:center;}
+#errorMsg{color:#D9534F;text-align:center;margin-bottom:8px;}
+.calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);}
+.calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em;}
+#loginBtn,#logoutBtn{position:absolute;top:15px;right:25px;}
+/* Modal backdrops */
+#assignModal,#searchModal,#toneModal,#editModal{
+  position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;
+  align-items:center;justify-content:center;z-index:1000;padding:20px;box-sizing:border-box;
+}
+#assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;}
+#assignContent{width:280px;}
+#searchContent{width:500px;max-height:80vh;overflow-y:auto;}
+#toneContent{width:300px;}
+/* EDIT modal improvements */
+#editContent{
+  width:420px; max-width:100%; max-height:85vh; display:flex; flex-direction:column;
+  gap:8px; padding:12px 14px;
+}
+#assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px;}
+.assign-item{margin:6px 0;display:flex;flex-direction:column;}
+.assign-item label{font-weight:bold;margin-bottom:3px;}
+.assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;}
+td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
+.video-result{display:flex;align-items:center;gap:10px;border-bottom:1px solid #ccc;padding:8px;}
+.video-result iframe{width:120px;height:70px;}
+.video-result button{background:#28a745;padding:4px 8px;font-size:0.75em;}
+.tone-btn{margin-left:4px;padding:4px 7px;font-size:0.9em;border-radius:6px;background:#4A90E2;color:#fff;cursor:pointer;border:none;}
+.tone-option{display:inline-block;margin:6px 6px;padding:6px 10px;background:#f0f0f0;border-radius:5px;cursor:pointer;}
+.tone-option:hover{background:#4A90E2;color:#fff;}
+
+/* Scrollable body inside edit modal */
+.edit-body{overflow:auto; padding-right:6px;}
+
+/* Footer always visible inside modal */
+.edit-footer{
+  display:flex; gap:10px; justify-content:center; align-items:center; padding-top:8px;
+  border-top:1px solid #eee; margin-top:6px; background:transparent; flex-shrink:0;
+}
+/* Make sure buttons inside modal are clearly visible */
+.edit-footer button{min-width:120px;}
+
+/* Small screens adjustments */
+@media (max-width:480px){
+  #editContent{width:100%; padding:10px;}
+  .edit-footer button{min-width:100px; font-size:0.85em;}
+}
+
+/* ========== OVERLAY MEJORADO (integrado) ========== */
+
+/* Base overlay container (replaces black-glass with dynamic golden radial + motion) */
+#accessOverlay{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(6px) saturate(1.02);
+  transition:opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+  animation: overlayFloat 6s ease-in-out infinite alternate;
+  padding:20px;
+}
+
+/* animate background shift + gentle scale */
+@keyframes overlayFloat {
+  from {
+    background-position: 0% 0%;
+    transform: scale(1);
+  }
+  to {
+    background-position: 100% 100%;
+    transform: scale(1.02);
+  }
+}
+
+/* make the overlay-card pop with layered glass + soft glow */
+.overlay-card{
+  width:100%;max-width:560px;border-radius:14px;padding:28px;box-sizing:border-box;
+  background: linear-gradient(180deg, rgba(20,18,16,0.75), rgba(10,10,12,0.65));
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 20px 50px rgba(0,0,0,0.8), 0 0 80px rgba(255,215,0,0.1) inset;
+  color:#fff;text-align:center;position:relative;overflow:hidden;
+  backdrop-filter: blur(10px) saturate(1.05);
+  transform-origin:center;
+  animation: cardEntrance 700ms cubic-bezier(.2,.9,.3,1) both;
+}
+
+/* entrance animation for the card */
+@keyframes cardEntrance {
+  from { opacity:0; transform: translateY(18px) scale(0.985); filter:blur(6px); }
+  to   { opacity:1; transform: translateY(0) scale(1); filter:blur(0); }
+}
+
+/* glowing yellow text for headings and messages inside the overlay */
+#accessOverlay h2,
+#accessOverlay label,
+#accessOverlay p,
+#accessOverlay .smallMsg {
+  color: #f9c74f;  /* Amarillo más suave y legible */
+  text-shadow: 0 0 6px #f9c74f, 0 0 12px #f9c74f;  /* Sombra más sutil */
+  animation: textGlow 2s ease-in-out infinite alternate;
+}
+
+/* text glow animation */
+@keyframes textGlow {
+  from {
+    text-shadow: 0 0 4px #f9c74f, 0 0 8px #f9c74f;
+  }
+  to {
+    text-shadow: 0 0 12px #f9c74f, 0 0 24px #f9c74f;
+  }
+}
+
+/* logo highlight */
+.overlay-card .logo{width:220px;margin:0 auto 18px auto;display:block;filter:drop-shadow(0 12px 30px rgba(255,200,0,0.12));transform:translateZ(0);}
+
+/* choice buttons get a warm gold gradient and glow */
+.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.choiceBtns button{
+  min-width:140px;padding:10px 14px;border-radius:12px;font-size:1rem;
+  background: linear-gradient(90deg, #ffd54a 0%, #ffca28 50%, #ffd54a 100%);
+  border:1px solid rgba(255,255,255,0.06);
+  color:#1a1200;font-weight:700;
+  box-shadow: 0 6px 22px rgba(255,209,88,0.12), 0 0 12px rgba(255,233,100,0.06) inset;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.choiceBtns button:hover{
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(255,215,0,0.18), 0 0 30px rgba(255,235,120,0.10);
+}
+
+/* form inputs inside overlay: brighter & inset golden glow */
+.formBox input{
+  width:90%;padding:12px;border-radius:10px;border:none;background:rgba(255,255,255,0.06);color:#fff;text-align:center;font-size:0.95rem;
+  box-shadow: inset 0 0 14px rgba(255,235,59,0.06);
+}
+.formBox .actions button{
+  padding:8px 12px;border-radius:10px;border:none;background:linear-gradient(90deg,#ffd54a,#ffcc00);color:#111;font-weight:700;
+  cursor:pointer;transition:transform .15s ease, box-shadow .15s ease;
+}
+.formBox .actions button:hover{ transform:translateY(-3px); box-shadow:0 10px 30px rgba(255,215,0,0.12); }
+
+/* close button: subtle white on dark but brighter on hover */
+.closeOverlay{position:absolute;top:10px;right:12px;background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:1.2rem;padding:8px;border-radius:8px;transition:background .15s,color .15s;}
+.closeOverlay:hover{color:#fff;background:rgba(255,255,255,0.04);}
+
+/* overlay error message brighter */
+#overlayError{ color:#fff9c4; font-weight:700; text-shadow:0 0 6px rgba(255,235,59,0.25); min-height:20px; margin-top:6px; }
+
+/* Prevent background scroll while overlay active */
+body.overlayLocked{overflow:hidden;height:100vh;}
+</style>
+</head>
+<body class="overlayLocked">
+<h1>Calendario Worship PDC</h1>
+<!-- Mantengo tus botones (se controlan por JS) -->
+<button id="loginBtn" class="hidden">Login</button>
+<button id="logoutBtn" class="hidden">Cerrar sesión</button>
+
+<!-- ========== OVERLAY DE ACCESO (BLACK GLASS mejorado con efectos dorados) ========== -->
+<div id="accessOverlay" role="dialog" aria-modal="true" aria-label="Acceso al sitio">
+  <div class="overlay-card" role="document">
+    <button class="closeOverlay" id="overlayClose" title="Cerrar">&times;</button>
+    <img src="imagen1.jpg" alt="Logo PDC" class="logo" />
+    <h2>Bienvenido a Worship PDC</h2>
+
+    <div class="choiceBtns" id="loginChoices">
+      <button id="visitorChoice" type="button">Entrar como Visitante</button>
+      <button id="adminChoice" type="button">Login Admin</button>
+    </div>
+
+    <!-- Visitante: solo contraseña -->
+    <div id="visitorBox" class="formBox" aria-hidden="true">
+      <input id="visitorPass" type="password" placeholder="Contraseña visitante" autocomplete="off" />
+      <div class="actions" style="display:flex;gap:8px;justify-content:center;width:100%;">
+        <button id="visitorSubmit" type="button">Entrar</button>
+        <button id="visitorCancel" type="button" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.06);">Volver</button>
+      </div>
+    </div>
+
+    <!-- Admin: usuario + contraseña -->
+    <div id="adminBox" class="formBox" aria-hidden="true">
+      <input id="adminUser" type="text" placeholder="Usuario" autocomplete="off" />
+      <input id="adminPass" type="password" placeholder="Contraseña" autocomplete="off" />
+      <div class="actions" style="display:flex;gap:8px;justify-content:center;width:100%;">
+        <button id="adminSubmit" type="button">Entrar</button>
+        <button id="adminCancel" type="button" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.06);">Volver</button>
+      </div>
+    </div>
+
+    <div id="overlayError" class="smallMsg" aria-live="polite"></div>
+  </div>
+</div>
+<!-- ========== FIN OVERLAY ========== -->
+...
+</body>
+</html>

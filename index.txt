@@ -5,150 +5,99 @@
 <title>Calendario Worship PDC</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-/* ========== ESTILOS (mejoras para móviles manteniendo funcionalidad) ========== */
-body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:12px; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+/* ========== TU ESTILO ORIGINAL (sin tocar funcionalidad) ========== */
+body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px;}
 h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5);user-select:none;}
 .hidden{display:none;}
 form,.calendar-block{width:100%;max-width:1100px;margin:0 auto 15px auto;}
-.table-container{width:100%;overflow:auto;-webkit-overflow-scrolling:touch;}
-table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed;min-width:760px;}
+table{width:100%;border-collapse:collapse;margin-top:5px;table-layout:fixed;}
 table th:nth-child(1),table td:nth-child(1){width:18%;}
 table th:nth-child(2),table td:nth-child(2){width:28%;}
 table th:nth-child(3),table td:nth-child(3){width:12%;}
 table th:nth-child(4),table td:nth-child(4){width:25%;}
 table th:nth-child(5),table td:nth-child(5){width:10%;}
 table th:nth-child(6),table td:nth-child(6){width:7%;}
-th,td{border:1px solid #ccc;padding:6px 8px;text-align:center;vertical-align:middle;font-size:0.92em;background-clip:padding-box;}
-th{background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;font-weight:600;position:sticky;top:0;z-index:2;}
-input[type=text],input[type=url],input[type=date],input[type=password],input[type=file]{width:95%;padding:6px 7px;border-radius:6px;border:1px solid #bbb;font-size:0.9em;box-sizing:border-box;}
-button{background-color:#4A90E2;border:none;color:white;padding:8px 12px;font-size:0.95em;font-weight:600;border-radius:8px;cursor:pointer;transition:background-color 0.25s ease;}
+th,td{border:1px solid #ccc;padding:5px 6px;text-align:center;vertical-align:middle;font-size:0.9em;}
+th{background:linear-gradient(135deg,#4A90E2,#357ABD);color:white;font-weight:600;}
+input[type=text],input[type=url],input[type=date],input[type=password],input[type=file]{width:95%;padding:4px 5px;border-radius:4px;border:1px solid #bbb;font-size:0.85em;box-sizing:border-box;}
+button{background-color:#4A90E2;border:none;color:white;padding:5px 10px;font-size:0.85em;font-weight:600;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;}
 button:hover{background-color:#357ABD;}
-.assign-green{background-color:#28a745;color:white;font-weight:600;padding:8px 12px;border:none;border-radius:8px;cursor:pointer;transition:background-color 0.25s ease;display:block;margin:6px auto;}
+.assign-green{background-color:#28a745;color:white;font-weight:600;padding:6px 12px;border:none;border-radius:5px;cursor:pointer;transition:background-color 0.3s ease;display:block;margin:5px auto;}
 .assign-green:hover{background-color:#218838;}
-iframe{max-width:100%;height:auto;border-radius:6px;display:block;margin:6px auto;border:0;}
-a{word-break:break-word;display:inline-block;font-size:0.875em;color:#274D87;text-decoration:none;}
+iframe{max-width:180px;height:90px;display:block;margin:4px auto;border-radius:6px;}
+a{word-break:break-word;display:inline-block;font-size:0.8em;color:#274D87;text-decoration:none;}
 a:hover{text-decoration:underline;}
-.actions button{margin:4px 6px;font-size:0.85em;padding:6px 8px;border-radius:6px;}
+.actions button{margin:2px 4px;font-size:0.75em;padding:3px 6px;border-radius:4px;}
 .actions .edit{background-color:#F0AD4E;}
 .actions .delete{background-color:#D9534F;}
 #loginSection{max-width:360px;margin:50px auto;padding:20px;border-radius:10px;background:rgba(255,255,255,0.95);box-shadow:0 6px 20px rgba(0,0,0,0.15);border:1px solid rgba(74,144,226,0.3);text-align:center;}
 #loginSection img{width:150px;margin-bottom:10px;}
 #loginSection h2{margin-bottom:10px;color:#4A90E2;text-align:center;}
 #errorMsg{color:#D9534F;text-align:center;margin-bottom:8px;}
-.calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.06);}
-.calendar-date{background:#4A90E2;color:white;padding:8px;border-radius:8px 8px 0 0;font-weight:700;text-align:center;font-size:1em;}
-#loginBtn,#logoutBtn{position:fixed;top:12px;right:18px;z-index:1100;padding:8px 10px;border-radius:8px;}
+.calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);}
+.calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em;}
+#loginBtn,#logoutBtn{position:absolute;top:15px;right:25px;}
 /* Modal backdrops */
-#assignModal,#searchModal,#toneModal,#editModal,#videoPlayerModal{
-  position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.45);display:none;
-  align-items:center;justify-content:center;z-index:1000;padding:18px;box-sizing:border-box;
+#assignModal,#searchModal,#toneModal,#editModal{
+  position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;
+  align-items:center;justify-content:center;z-index:1000;padding:20px;box-sizing:border-box;
 }
-#assignContent,#searchContent,#toneContent,#editContent,#videoPlayerContent{background:#fff;padding:14px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;}
-#assignContent{width:320px;max-width:100%;}
-#searchContent{width:540px;max-width:100%;max-height:80vh;overflow-y:auto;}
-#toneContent{width:320px;max-width:100%;}
-/* Video player modal */
-#videoPlayerContent{width:920px;max-width:100%;height:auto;padding:6px;display:flex;align-items:center;justify-content:center;}
-#videoPlayerContent iframe{width:100%;height:60vh;border-radius:8px;}
-/* EDIT modal */
+#assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;}
+#assignContent{width:280px;}
+#searchContent{width:500px;max-height:80vh;overflow-y:auto;}
+#toneContent{width:300px;}
+/* EDIT modal improvements */
 #editContent{
-  width:460px; max-width:100%; max-height:85vh; display:flex; flex-direction:column;
+  width:420px; max-width:100%; max-height:85vh; display:flex; flex-direction:column;
   gap:8px; padding:12px 14px;
 }
 #assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px;}
 .assign-item{margin:6px 0;display:flex;flex-direction:column;}
 .assign-item label{font-weight:bold;margin-bottom:3px;}
-.assign-item select{padding:6px;border:1px solid #ccc;border-radius:6px;font-size:0.92em;}
-td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.95em;}
+.assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;}
+td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
 .video-result{display:flex;align-items:center;gap:10px;border-bottom:1px solid #ccc;padding:8px;}
-.video-result img.thumb{width:140px;height:80px;object-fit:cover;border-radius:6px;}
-.video-result button{background:#28a745;padding:6px 10px;font-size:0.85em;border-radius:6px;}
-.tone-btn{margin-left:4px;padding:6px 9px;font-size:0.95em;border-radius:8px;background:#4A90E2;color:#fff;cursor:pointer;border:none;}
-.tone-option{display:inline-block;margin:6px 6px;padding:8px 10px;background:#f0f0f0;border-radius:6px;cursor:pointer;}
+.video-result iframe{width:120px;height:70px;}
+.video-result button{background:#28a745;padding:4px 8px;font-size:0.75em;}
+.tone-btn{margin-left:4px;padding:4px 7px;font-size:0.9em;border-radius:6px;background:#4A90E2;color:#fff;cursor:pointer;border:none;}
+.tone-option{display:inline-block;margin:6px 6px;padding:6px 10px;background:#f0f0f0;border-radius:5px;cursor:pointer;}
 .tone-option:hover{background:#4A90E2;color:#fff;}
 
-/* Thumbnail card for song list (used on small screens or when configured) */
-.video-thumb {
-  position:relative;
-  display:inline-block;
-  width:100%;
-  max-width:220px;
-  cursor:pointer;
-  border-radius:6px;
-  overflow:hidden;
-}
-.video-thumb img {
-  display:block;
-  width:100%;
-  height:auto;
-  object-fit:cover;
-}
-.video-thumb .play-overlay{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.35));
-}
-.video-thumb .play-btn{
-  width:56px;height:56px;border-radius:50%;background:rgba(74,144,226,0.95);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;border:none;box-shadow:0 6px 18px rgba(0,0,0,0.25);
-}
-
 /* Scrollable body inside edit modal */
-.edit-body{overflow:auto; padding-right:6px; max-height:60vh;}
+.edit-body{overflow:auto; padding-right:6px;}
 
 /* Footer always visible inside modal */
 .edit-footer{
   display:flex; gap:10px; justify-content:center; align-items:center; padding-top:8px;
   border-top:1px solid #eee; margin-top:6px; background:transparent; flex-shrink:0;
 }
+/* Make sure buttons inside modal are clearly visible */
 .edit-footer button{min-width:120px;}
 
 /* Small screens adjustments */
-@media (max-width:760px){
-  body{margin:10px;}
-  table{min-width:100%;}
-  .table-container{overflow:auto;}
-  iframe{aspect-ratio:16/9;height:auto;}
-  #editContent{width:100%; padding:12px;}
-  .edit-footer button{min-width:100px; font-size:0.9em;}
-  button{padding:10px 12px;border-radius:10px;}
+@media (max-width:480px){
+  #editContent{width:100%; padding:10px;}
+  .edit-footer button{min-width:100px; font-size:0.85em;}
 }
 
-/* ======== MÓVIL: convertir tabla en tarjetas apiladas ======== */
-@media (max-width:520px){
-  table{border:0;min-width:unset;}
-  thead{display:none;}
-  tbody tr{display:block;margin-bottom:12px;border:1px solid #e6e6e6;border-radius:10px;padding:8px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.03);}
-  td{display:flex;justify-content:space-between;align-items:center;padding:8px;border:none;border-bottom:1px solid #f0f0f0;font-size:0.95em;}
-  td:last-child{border-bottom:0;}
-  td:before{content:attr(data-label);font-weight:700;color:#4A90E2;display:inline-block;width:48%;text-align:left;}
-  td iframe{width:48%;height:auto;border-radius:8px;}
-  .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
-  input[type=text],input[type=url],input[type=date],input[type=file]{width:100%;}
-  .assign-green{width:100%;}
-  #loginBtn,#logoutBtn{top:10px;right:10px;padding:8px;border-radius:8px;}
-  .overlay-card{padding:18px;}
-  #accessOverlay{padding:12px;}
-  #searchContent{width:95%;}
-}
-
-/* ========== OVERLAY BLACK GLASS LOGIN (mejor soporte móvil) ========== */
+/* ========== OVERLAY BLACK GLASS LOGIN ========== */
 #accessOverlay{
   position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;
   background:linear-gradient(180deg, rgba(0,0,0,0.7), rgba(0,0,0,0.85));
   backdrop-filter: blur(6px);
-  transition:opacity 260ms ease;
+  transition:opacity 360ms ease;
 }
 .overlay-card{
-  width:100%;max-width:640px;border-radius:14px;padding:26px;box-sizing:border-box;
+  width:100%;max-width:540px;border-radius:14px;padding:28px;box-sizing:border-box;
   background:linear-gradient(180deg, rgba(10,10,12,0.6), rgba(6,6,8,0.45));
   border:1px solid rgba(255,255,255,0.06);
   box-shadow:0 12px 40px rgba(0,0,0,0.6);
   color:#fff;text-align:center;position:relative;overflow:hidden;
   backdrop-filter: blur(10px) saturate(1.05);
-  max-height:90vh; overflow:auto;
 }
-.overlay-card .logo{width:200px;margin:0 auto 14px auto;display:block;filter:drop-shadow(0 8px 30px rgba(0,0,0,0.6));}
-.overlay-card h2{margin:6px 0 14px 0;font-size:1.25rem;color:#ffd54a;}
-.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;}
+.overlay-card .logo{width:220px;margin:0 auto 18px auto;display:block;filter:drop-shadow(0 8px 30px rgba(0,0,0,0.6));}
+.overlay-card h2{margin:4px 0 14px 0;font-size:1.35rem;color:#ffd54a;}
+.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
 .choiceBtns button{min-width:140px;padding:10px 14px;border-radius:10px;font-size:1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);color:#fff;}
 .choiceBtns button:hover{background:rgba(255,255,255,0.08);}
 .formBox{margin-top:8px;display:none;flex-direction:column;align-items:center;gap:8px;}
@@ -157,19 +106,20 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.95em;}
 .formBox .row input{flex:1;}
 .formBox .actions{display:flex;gap:8px;justify-content:center;width:90%;}
 .smallMsg{margin-top:8px;color:#ffb3b3;font-weight:600;min-height:18px;}
-.closeOverlay{position:absolute;top:10px;right:12px;background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:1.1rem;padding:8px;border-radius:8px;}
+.closeOverlay{position:absolute;top:10px;right:12px;background:transparent;border:none;color:rgba(255,255,255,0.5);font-size:1.1rem;padding:6px;border-radius:8px;}
 .closeOverlay:hover{color:#fff;background:rgba(255,255,255,0.03);}
-
+.hiddenVis{display:none!important;}
 /* Prevent background scroll while overlay active */
-body.overlayLocked{overflow:hidden;}
+body.overlayLocked{overflow:hidden;height:100vh;}
 </style>
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
+<!-- Mantengo tus botones (se controlan por JS) -->
 <button id="loginBtn" class="hidden">Login</button>
 <button id="logoutBtn" class="hidden">Cerrar sesión</button>
 
-<!-- OVERLAY DE ACCESO -->
+<!-- ========== OVERLAY DE ACCESO (BLACK GLASS) ========== -->
 <div id="accessOverlay" role="dialog" aria-modal="true" aria-label="Acceso al sitio">
   <div class="overlay-card" role="document">
     <button class="closeOverlay" id="overlayClose" title="Cerrar">&times;</button>
@@ -203,51 +153,48 @@ body.overlayLocked{overflow:hidden;}
     <div id="overlayError" class="smallMsg" aria-live="polite"></div>
   </div>
 </div>
+<!-- ========== FIN OVERLAY ========== -->
 
-<!-- CONTENIDO PRINCIPAL -->
+<!-- ========== TU CONTENIDO PRINCIPAL (sin cambios funcionales) ========== -->
 <div id="mainContent" class="hidden">
   <form id="lineForm" class="hidden">
-    <div class="table-container">
-      <table>
-        <tr>
-          <th>Video YouTube</th>
-          <th>Cifrado PDF</th>
-          <th>Tono</th>
-          <th>Músicos</th>
-          <th>Fecha</th>
-          <th class="action-header">Acción</th>
-        </tr>
-        <tr>
-          <td>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <input type="url" id="videoURL" placeholder="https://..." />
-              <button type="button" id="searchVideoBtn">Buscar</button>
-            </div>
-          </td>
-          <td><input type="file" id="fileUpload" accept="application/pdf" /></td>
-          <td>
-            <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
-              <input type="text" id="chords" placeholder="Ej: G - D - Em" />
-              <button type="button" id="toneBtn" class="tone-btn" title="Elegir tono">🎵</button>
-            </div>
-          </td>
-          <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
-          <td><input type="date" id="customDate" /></td>
-          <td class="action-cell"><button type="button" id="addLine">Agregar</button></td>
-        </tr>
-      </table>
-    </div>
+    <table>
+      <tr>
+        <th>Video YouTube</th>
+        <th>Cifrado PDF</th>
+        <th>Tono</th>
+        <th>Músicos</th>
+        <th>Fecha</th>
+        <th class="action-header">Acción</th>
+      </tr>
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <input type="url" id="videoURL" placeholder="https://..."/>
+            <button type="button" id="searchVideoBtn">Buscar</button>
+          </div>
+        </td>
+        <td><input type="file" id="fileUpload" accept="application/pdf"/></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:5px;justify-content:center;">
+            <input type="text" id="chords" placeholder="Ej: G - D - Em"/>
+            <button type="button" id="toneBtn" class="tone-btn" title="Elegir tono">🎵</button>
+          </div>
+        </td>
+        <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
+        <td><input type="date" id="customDate"/></td>
+        <td class="action-cell"><button type="button" id="addLine">Agregar</button></td>
+      </tr>
+    </table>
   </form>
 
   <h2 style="text-align:center;color:#4A90E2;">Lista multimedia</h2>
   <div id="calendarContainer"></div>
 </div>
 
-<!-- Modales -->
+<!-- Modales y editModal (sin cambios) -->
 <div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions" style="text-align:center;"></div><div style="text-align:center;margin-top:12px;"><button id="closeTone">Cerrar</button></div></div></div>
 <div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px;"><button id="saveAssign">Guardar</button><button id="closeAssign">Cerrar</button></div></div></div>
-
-<!-- Search modal will show thumbnails instead of many iframes -->
 <div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px;"><button id="closeSearch">Cerrar</button></div></div></div>
 
 <div id="editModal" aria-hidden="true">
@@ -271,16 +218,9 @@ body.overlayLocked{overflow:hidden;}
   </div>
 </div>
 
-<!-- Video player modal (used to play a single video on demand) -->
-<div id="videoPlayerModal" aria-hidden="true">
-  <div id="videoPlayerContent" role="dialog" aria-modal="true" aria-label="Reproductor de video">
-    <!-- iframe will be injected here when user requests playback -->
-  </div>
-</div>
-
-<!-- SCRIPT -->
+<!-- ========== SCRIPT (integrado y adaptado) ========== -->
 <script type="module">
-/* Firebase */
+/* Firebase (igual que antes) */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
   getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc 
@@ -297,15 +237,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* Credenciales locales (migrar a Firebase Auth en producción) */
-const VISITOR_PASSWORD = "pdc2025*";
+/* ========== Credenciales (local validation for now) ========== */
+/* NOTA: para producción migrar a Firebase Auth y eliminar credenciales del cliente */
+const VISITOR_PASSWORD = "pdc2025*";          // (queda en el script por ahora)
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
 
-let loggedIn = false;
-let visitorLogged = false;
+/* Estado de sesión */
+let loggedIn = false;        // admin
+let visitorLogged = false;   // visitante
 
-/* Elementos overlay */
+/* Elementos del overlay */
 const accessOverlay = document.getElementById("accessOverlay");
 const visitorChoice = document.getElementById("visitorChoice");
 const adminChoice = document.getElementById("adminChoice");
@@ -325,11 +267,13 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 
-/* Show/hide overlay */
+/* Mantenimiento: evita que se cargue el contenido antes del login.
+   Mostramos overlay al inicio (atributo class body.overlayLocked ya aplicado). */
 function showOverlay() {
   accessOverlay.style.display = "flex";
   document.body.classList.add("overlayLocked");
   overlayError.textContent = "";
+  // reset boxes
   visitorBox.style.display = "none";
   adminBox.style.display = "none";
   document.getElementById("loginChoices").style.display = "flex";
@@ -337,19 +281,22 @@ function showOverlay() {
   adminUser.value = "";
   adminPass.value = "";
 }
+
+/* Oculta overlay (muestra contenido). */
 function hideOverlay() {
   accessOverlay.style.display = "none";
   document.body.classList.remove("overlayLocked");
 }
 
-/* Roles */
+/* Determina lo que verá cada rol */
 function enterAsVisitor() {
   visitorLogged = true;
   loggedIn = false;
   hideOverlay();
   mainContent.classList.remove("hidden");
-  lineForm.classList.add("hidden");
+  lineForm.classList.add("hidden"); // visitante no ve edición
   logoutBtn.classList.remove("hidden");
+  // renderizamos datos (ahora que el usuario puede ver)
   renderSongs();
   localStorage.setItem("worship_role", "visitor");
 }
@@ -358,16 +305,22 @@ function enterAsAdmin() {
   loggedIn = true;
   hideOverlay();
   mainContent.classList.remove("hidden");
-  lineForm.classList.remove("hidden");
+  lineForm.classList.remove("hidden"); // admin ve edición
   logoutBtn.classList.remove("hidden");
   renderSongs();
   localStorage.setItem("worship_role", "admin");
 }
+
+/* Restaurar sesión si existe */
 function restoreSession() {
   const role = localStorage.getItem("worship_role");
-  if (role === "admin") enterAsAdmin();
-  else if (role === "visitor") enterAsVisitor();
-  else showOverlay();
+  if (role === "admin") {
+    enterAsAdmin();
+  } else if (role === "visitor") {
+    enterAsVisitor();
+  } else {
+    showOverlay();
+  }
 }
 
 /* Overlay interactions */
@@ -394,25 +347,40 @@ adminCancel.onclick = () => {
   overlayError.textContent = "";
 };
 overlayClose.onclick = () => {
+  // cerrar overlay no permite ver contenido -> solo útil en pruebas.
+  // Mejor restablecer a choices.
   visitorBox.style.display = "none";
   adminBox.style.display = "none";
   document.getElementById("loginChoices").style.display = "flex";
   overlayError.textContent = "";
 };
 
-/* Login validation */
+/* Validaciones (local) */
 visitorSubmit.onclick = () => {
   const pass = visitorPass.value.trim();
-  if (!pass) { overlayError.textContent = "Ingresa la contraseña de visitante."; return; }
-  if (pass === VISITOR_PASSWORD) enterAsVisitor();
-  else overlayError.textContent = "Contraseña visitante incorrecta.";
+  if (!pass) {
+    overlayError.textContent = "Ingresa la contraseña de visitante.";
+    return;
+  }
+  if (pass === VISITOR_PASSWORD) {
+    enterAsVisitor();
+  } else {
+    overlayError.textContent = "Contraseña visitante incorrecta.";
+  }
 };
+
 adminSubmit.onclick = () => {
   const user = adminUser.value.trim();
   const pass = adminPass.value.trim();
-  if (!user || !pass) { overlayError.textContent = "Ingresa usuario y contraseña."; return; }
-  if (user === ADMIN_USER && pass === ADMIN_PASS) enterAsAdmin();
-  else overlayError.textContent = "Usuario o contraseña admin incorrectos.";
+  if (!user || !pass) {
+    overlayError.textContent = "Ingresa usuario y contraseña.";
+    return;
+  }
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    enterAsAdmin();
+  } else {
+    overlayError.textContent = "Usuario o contraseña admin incorrectos.";
+  }
 };
 
 /* Logout */
@@ -420,16 +388,18 @@ logoutBtn.onclick = () => {
   loggedIn = false;
   visitorLogged = false;
   localStorage.removeItem("worship_role");
+  // ocultar todo el contenido
   mainContent.classList.add("hidden");
   lineForm.classList.add("hidden");
   logoutBtn.classList.add("hidden");
+  // mostrarse overlay
   showOverlay();
 };
 
-/* Restore session at load */
+/* Restaurar sesión al cargar (si el usuario ya estaba logueado) */
 restoreSession();
 
-/* ================= LOGICA PRINCIPAL ================= */
+/* ===================== Resto de tu lógica original (sin tocar funcionalidad) ===================== */
 
 /* Asignar músicos */
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
@@ -491,7 +461,7 @@ function buildToneOptions() {
 toneBtn.onclick = () => { buildToneOptions(); toneModal.style.display = "flex"; };
 closeTone.onclick = () => toneModal.style.display = "none";
 
-/* Buscar video (mostramos miniaturas en la lista para ahorrar iframes) */
+/* Buscar video */
 const searchVideoBtn = document.getElementById("searchVideoBtn");
 const searchModal = document.getElementById("searchModal");
 const videoList = document.getElementById("videoList");
@@ -506,12 +476,11 @@ searchVideoBtn.onclick = async () => {
     snap.forEach(docSnap => {
       const song = docSnap.data();
       if (song.video) {
-        const match = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
-        const vid = match ? match[1] : null;
+        const idv = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
+        const iframeHtml = idv ? `<iframe src='https://www.youtube.com/embed/${idv[1]}' frameborder='0'></iframe>` : "";
         const div = document.createElement("div");
         div.classList.add("video-result");
-        const thumbHtml = vid ? `<img class="thumb" src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" alt="Miniatura video">` : '';
-        div.innerHTML = `${thumbHtml}<div style="flex:1;"><p><strong>${song.date || ''}</strong></p><p style="word-break:break-all;">${song.video}</p></div>`;
+        div.innerHTML = `${iframeHtml}<div style="flex:1;"><p><strong>${song.date || ''}</strong></p><p style="word-break:break-all;">${song.video}</p></div>`;
         const selBtn = document.createElement("button");
         selBtn.type = "button";
         selBtn.textContent = "Seleccionar";
@@ -519,20 +488,10 @@ searchVideoBtn.onclick = async () => {
           document.getElementById("videoURL").value = song.video;
           searchModal.style.display = "none";
         };
-        // allow quick preview in modal
-        const previewBtn = document.createElement("button");
-        previewBtn.type = "button";
-        previewBtn.textContent = "Previsualizar";
-        previewBtn.onclick = () => {
-          if (!vid) return alert("ID de video no válido");
-          openVideoPlayer(`https://www.youtube.com/embed/${vid}?autoplay=1`);
-        };
-        div.appendChild(previewBtn);
         div.appendChild(selBtn);
         videoList.appendChild(div);
       }
     });
-    if (videoList.children.length === 0) videoList.innerHTML = "<p style='text-align:center;color:#666;'>No hay videos guardados.</p>";
   } catch (err) {
     console.error(err);
     videoList.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando videos</p>";
@@ -577,10 +536,10 @@ function buildEditAssignFields(existingMusicos = {}) {
   });
 }
 
-/* Close edit modal */
+/* Close modal on cancel */
 cancelEdit.onclick = () => { editModal.style.display = "none"; currentEditId = null; currentEditSong = null; };
 
-/* Click outside to close modals */
+/* Close modal when clicking outside content */
 editModal.addEventListener('click', (e) => {
   if (e.target === editModal) {
     editModal.style.display = 'none';
@@ -589,45 +548,16 @@ editModal.addEventListener('click', (e) => {
   }
 });
 
-/* Escape to close modals */
+/* Close modal with Escape key */
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (editModal.style.display === 'flex') { editModal.style.display = 'none'; currentEditId = null; currentEditSong = null; }
-    [assignModal, searchModal, toneModal, videoPlayerModal].forEach(m => { if (m.style.display === 'flex') m.style.display = 'none'; });
-    // stop playback by clearing player
-    clearVideoPlayer();
+  if (e.key === 'Escape' && editModal.style.display === 'flex') {
+    editModal.style.display = 'none';
+    currentEditId = null;
+    currentEditSong = null;
   }
 });
 
-/* Video player modal logic */
-const videoPlayerModal = document.getElementById('videoPlayerModal');
-const videoPlayerContent = document.getElementById('videoPlayerContent');
-
-function openVideoPlayer(embedUrl) {
-  // inject iframe
-  videoPlayerContent.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-  videoPlayerModal.style.display = 'flex';
-  document.body.classList.add("overlayLocked");
-}
-function clearVideoPlayer() {
-  videoPlayerContent.innerHTML = '';
-  videoPlayerModal.style.display = 'none';
-  document.body.classList.remove("overlayLocked");
-}
-videoPlayerModal.addEventListener('click', (e) => {
-  if (e.target === videoPlayerModal) clearVideoPlayer();
-});
-
-/* Helper: extract YouTube ID */
-function extractYouTubeID(url) {
-  if (!url) return null;
-  const m = url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
-  return m ? m[1] : null;
-}
-
-/* Mostrar canciones.
-   Now: on small screens we render a thumbnail + play button to avoid many iframes.
-   On larger screens we continue embedding iframes. */
+/* Mostrar canciones */
 async function addSongToDOM(song, id) {
   let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
   if (!block) {
@@ -635,7 +565,7 @@ async function addSongToDOM(song, id) {
     block.classList.add("calendar-block");
     block.dataset.date = song.date;
     block.innerHTML = `<div class="calendar-date">${song.date}</div>
-      <div class="table-container"><table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table></div>`;
+      <table><thead><tr><th>Video</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table>`;
     document.getElementById("calendarContainer").appendChild(block);
   }
 
@@ -643,85 +573,31 @@ async function addSongToDOM(song, id) {
   const tr = document.createElement("tr");
 
   const tdVideo = document.createElement("td");
-  tdVideo.dataset.label = "Video";
-
   if (song.video) {
-    const vid = extractYouTubeID(song.video);
-    const useThumbs = window.matchMedia("(max-width:520px)").matches; // mobiles get thumbnails
-    if (useThumbs || !vid) {
-      // render thumbnail with play overlay (lighter)
-      const thumbUrl = vid ? `https://img.youtube.com/vi/${vid}/hqdefault.jpg` : '';
-      const thumbWrapper = document.createElement('div');
-      thumbWrapper.className = 'video-thumb';
-      thumbWrapper.setAttribute('role','button');
-      thumbWrapper.setAttribute('tabindex','0');
-      thumbWrapper.setAttribute('aria-label','Reproducir video');
-
-      if (thumbUrl) {
-        const img = document.createElement('img');
-        img.src = thumbUrl;
-        img.alt = `Miniatura video ${song.date || ''}`;
-        thumbWrapper.appendChild(img);
-      } else {
-        const span = document.createElement('span');
-        span.textContent = 'Ver video';
-        thumbWrapper.appendChild(span);
-      }
-
-      const overlay = document.createElement('div');
-      overlay.className = 'play-overlay';
-      overlay.innerHTML = `<button class="play-btn" aria-label="Reproducir">▶</button>`;
-      thumbWrapper.appendChild(overlay);
-
-      // click/keyboard to play
-      thumbWrapper.addEventListener('click', () => {
-        if (!vid) return alert('ID de video no válido');
-        openVideoPlayer(`https://www.youtube.com/embed/${vid}?autoplay=1`);
-      });
-      thumbWrapper.addEventListener('keydown', (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ') {
-          ev.preventDefault();
-          thumbWrapper.click();
-        }
-      });
-
-      tdVideo.appendChild(thumbWrapper);
-    } else {
-      // desktop: embed iframe directly
-      const iframe = document.createElement('iframe');
-      iframe.src = `https://www.youtube.com/embed/${vid}`;
-      iframe.setAttribute('frameborder','0');
-      iframe.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
-      iframe.setAttribute('allowfullscreen','');
-      tdVideo.appendChild(iframe);
-    }
-  } else {
-    tdVideo.textContent = "";
+    const idv = song.video.match(/(?:v=|youtu\.be\/)([^&]+)/);
+    tdVideo.innerHTML = idv ? `<iframe src="https://www.youtube.com/embed/${idv[1]}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
   }
 
   const tdFile = document.createElement("td");
-  tdFile.dataset.label = "Cifrado PDF";
-  if (song.fileURL) tdFile.innerHTML = `<a href="${song.fileURL}" target="_blank" rel="noopener">${song.fileName || 'PDF'}</a>`;
+  if (song.fileURL) tdFile.innerHTML = `<a href="${song.fileURL}" target="_blank">${song.fileName}</a>`;
 
   const tdChords = document.createElement("td");
-  tdChords.dataset.label = "Tono";
   tdChords.textContent = song.chords || "";
 
   const tdNote = document.createElement("td");
-  tdNote.dataset.label = "Músicos";
   tdNote.textContent = song.musicos ? Object.entries(song.musicos).map(([k,v])=>`${k}: ${v}`).join('\n') : "";
 
   tr.append(tdVideo, tdFile, tdChords, tdNote);
 
   if (loggedIn) {
     const tdActions = document.createElement("td");
-    tdActions.dataset.label = "Acciones";
     tdActions.classList.add("actions");
 
     const edit = document.createElement("button");
     edit.textContent = "Modificar";
     edit.classList.add("edit");
     edit.onclick = () => {
+      // abrir modal de edición y precargar
       currentEditId = id;
       currentEditSong = song;
       editVideo.value = song.video || "";
@@ -729,6 +605,7 @@ async function addSongToDOM(song, id) {
       editFile.value = "";
       editDate.value = song.date || "";
       buildEditAssignFields(song.musicos || {});
+      // show modal (flex to use centering)
       editModal.style.display = "flex";
     };
 
@@ -749,7 +626,7 @@ async function addSongToDOM(song, id) {
   tbody.append(tr);
 }
 
-/* Render songs */
+/* Renderiza canciones (se llama sólo después de login/visitor) */
 async function renderSongs() {
   document.getElementById("calendarContainer").innerHTML = "";
   try {
@@ -761,7 +638,7 @@ async function renderSongs() {
   }
 }
 
-/* Save edit */
+/* Guardar edición (actualiza el doc existente) */
 saveEdit.onclick = async () => {
   if (!currentEditId) return alert("No hay canción seleccionada.");
   try {
@@ -779,26 +656,31 @@ saveEdit.onclick = async () => {
     if (newDate) updates.date = newDate;
     else if (currentEditSong.date) updates.date = currentEditSong.date;
 
+    // recoger músicos del modal
     const newMusicos = {};
     instruments.forEach(instr => {
       const sel = document.getElementById(`editsel-${instr.replace(/\s+/g,'_')}`);
       if (sel && sel.value) newMusicos[instr] = sel.value;
     });
+    // si se dejó vacío, mantenemos el anterior si existía
     if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
     else if (currentEditSong.musicos) updates.musicos = currentEditSong.musicos;
 
+    // si suben nuevo pdf, subo y agrego fileURL + fileName
     if (editFile.files.length > 0) {
       const file = editFile.files[0];
       const fileURL = await uploadToGoFile(file);
       updates.fileName = file.name;
       updates.fileURL = fileURL;
     } else {
+      // no subió nada nuevo: mantenemos si existía
       if (currentEditSong.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
         if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
       }
     }
 
+    // ejecutar update
     await updateDoc(doc(db, "songs", currentEditId), updates);
     alert("✅ Cambios guardados.");
     editModal.style.display = "none";
@@ -811,7 +693,7 @@ saveEdit.onclick = async () => {
   }
 };
 
-/* Add song */
+/* Agregar canción */
 document.getElementById("addLine").onclick = async () => {
   const url = document.getElementById("videoURL").value.trim();
   const fileInput = document.getElementById("fileUpload");
@@ -849,14 +731,8 @@ document.getElementById("addLine").onclick = async () => {
   }
 };
 
-/* Allow closing other modals by clicking outside */
-[assignModal, searchModal, toneModal].forEach(modal => {
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.style.display = 'none';
-  });
-});
-
-/* End of script */
+/* NOTA: No hay renderSongs() en el arranque.
+   renderSongs() se invoca solo después de login/visitor (enterAsAdmin/enterAsVisitor). */
 </script>
 </body>
 </html>

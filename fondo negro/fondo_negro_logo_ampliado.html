@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Calendario Worship PDC</title>
+<style>
+body {
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background:#f9f9fb;
+  color:#333;
+  margin:15px;
+}
+h1{
+  text-align:center;
+  color:#4A90E2;
+  font-weight:700;
+  margin-bottom:10px;
+  text-shadow:1px 1px 2px rgba(74,144,226,0.5);
+  user-select:none;
+}
+.hidden{display:none;}
+#preLoginOverlay{
+  position:fixed;
+  inset:0;
+  background:rgba(5,5,8,0.82);
+  backdrop-filter:blur(10px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:20px;
+  box-sizing:border-box;
+  animation:overlayIn 0.6s ease;
+}
+#preLoginOverlay.fadeOut{
+  animation:overlayOut 1.2s ease forwards;
+}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes overlayOut{from{opacity:1}to{opacity:0;visibility:hidden}}
+.overlayGlass{
+  width:100%;
+  max-width:520px;
+  border-radius:18px;
+  padding:34px 30px;
+  background:linear-gradient(180deg, rgba(16,16,20,0.65), rgba(8,8,10,0.55));
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 12px 48px rgba(0,0,0,0.65);
+  color:#fff;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  backdrop-filter:blur(9px) saturate(1.05);
+}
+.overlayLogo {
+  width: 200px;
+  margin: 6px auto 18px auto;
+  filter: drop-shadow(0 8px 24px rgba(74,144,226,0.25));
+  animation: logoPulse 3.2s ease-in-out infinite;
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+.overlayLogo:hover {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 35px rgba(74,144,226,0.55));
+}
+@keyframes logoPulse {
+  0% { transform: scale(1); opacity: 0.96; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.96; }
+}
+.overlayGlass h2{
+  margin:6px 0 18px 0;
+  color:#CFE8FF;
+  font-weight:700;
+  text-shadow:0 2px 12px rgba(52,120,200,0.08);
+}
+.choiceBtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.choiceBtns button{min-width:150px;padding:10px 14px;border-radius:10px;font-size:1rem;}
+.formBox{margin-top:16px;display:none;flex-direction:column;align-items:center;gap:8px;}
+.formBox input{
+  min-width:220px;
+  padding:8px;
+  border-radius:8px;
+  border:none;
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  text-align:center;
+}
+.formBox button{padding:8px 12px;border-radius:8px;}
+.overlayMsg{margin-top:8px;color:#ff8b8b;font-weight:600;min-height:18px;}
+body.overlayLocked{overflow:hidden;}
+</style>
+</head>
+<body class="overlayLocked">
+<h1>Calendario Worship PDC</h1>
+<div id="preLoginOverlay" role="dialog" aria-modal="true">
+  <div class="overlayGlass" role="document">
+    <img src="imagen1.jpg" alt="Logo PDC" class="overlayLogo" />
+    <h2>Bienvenido a Worship PDC</h2>
+    <div id="loginChoices" class="choiceBtns">
+      <button id="visitorChoice">Entrar como Visitante</button>
+      <button id="adminChoice">Login Admin</button>
+    </div>
+    <div id="visitorBox" class="formBox" aria-hidden="true">
+      <input id="visitorPass" type="password" placeholder="Contraseña visitante" />
+      <button id="visitorSubmit">Entrar</button>
+    </div>
+    <div id="adminBox" class="formBox" aria-hidden="true">
+      <input id="adminUser" type="text" placeholder="Usuario" />
+      <input id="adminPass" type="password" placeholder="Contraseña admin" />
+      <button id="adminSubmit">Entrar</button>
+    </div>
+    <div id="preLoginError" class="overlayMsg" aria-live="polite"></div>
+  </div>
+</div>
+
+<script type="module">
+function enterMode(isAdmin){
+  const overlay=document.getElementById("preLoginOverlay");
+  overlay.classList.add("fadeOut");
+  document.body.classList.remove("overlayLocked");
+  setTimeout(()=>overlay.style.display="none",1200);
+}
+</script>
+</body>
+</html>
