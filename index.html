@@ -144,7 +144,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
 }
 
 /* extra small helpers for PDF buttons */
-.pdf-action { display:inline-block;padding:8px 10px;border-radius:8px;color:#fff;background:#4A90E2;text-decoration:none;margin:6px 6px;font-size:0.9em; }
+.pdf-action { display:inline-block;padding:8px 10px;border-radius:8px;color:#fff;background:#4A90E2;text-decoration:none;margin:6px 6px;font-size:0.9em; border:none; cursor:pointer;}
 .pdf-action.secondary { background:#6c757d; }
 .pdf-note { font-size:0.82em;color:#666;margin-top:6px;display:block;text-align:center; }
 </style>
@@ -621,6 +621,60 @@ async function isPdfDirectAccessible(url, timeout = 4000) {
   return false;
 }
 
+/* NUEVA FUNCIÓN: fuerza descarga vía fetch->blob y fallback a abrir la página */
+async function forceDownloadPdf(directUrl, fallbackUrl) {
+  if (!directUrl && !fallbackUrl) {
+    alert('No hay enlace disponible para descargar.');
+    return;
+  }
+
+  // Timeout helper
+  const timeoutMs = 8000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  if (directUrl) {
+    try {
+      const resp = await fetch(directUrl, { method: 'GET', signal: controller.signal, cache: 'no-store' });
+      clearTimeout(timer);
+      if (!resp.ok) throw new Error('Respuesta no OK: ' + resp.status);
+      const ct = (resp.headers.get('content-type') || '').toLowerCase();
+      // Aceptamos si parece PDF por headers, o intentamos detectar por contenido
+      const blob = await resp.blob();
+      const headText = await blob.slice(0, 8).text().catch(()=>'');
+      const isPdf = ct.includes('pdf') || headText.includes('%PDF');
+      if (!isPdf) throw new Error('Recurso no parece PDF (content-type / contenido).');
+
+      // Crear enlace para forzar descarga
+      const urlBlob = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = urlBlob;
+      a.download = (directUrl.split('/').pop() || 'archivo.pdf');
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(urlBlob), 10000);
+      return;
+    } catch (err) {
+      // fallo (CORS, timeout, no PDF, etc.)
+      console.warn('forceDownloadPdf: no se pudo descargar directamente:', err && err.message ? err.message : err);
+      // continuar al fallback
+    }
+  } else {
+    clearTimeout(timer);
+  }
+
+  // Fallback: abrir la página de GoFile (o el enlace de página)
+  if (fallbackUrl) {
+    window.open(fallbackUrl, '_blank', 'noopener');
+    alert('No fue posible descargar directamente. Se ha abierto la página de descarga; desde ahí pulsa "Descargar".');
+  } else if (directUrl) {
+    window.open(directUrl, '_blank', 'noopener');
+  } else {
+    alert('No hay enlace disponible para abrir o descargar.');
+  }
+}
+
 /* Edit modal helpers */
 const editModal = document.getElementById("editModal");
 const editVideo = document.getElementById("editVideo");
@@ -744,8 +798,14 @@ async function addSongToDOM(song, id) {
               container.innerHTML = `
                 <a class="pdf-action" href="${direct}" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
                 ${pageLink ? `<a class="pdf-action secondary" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>` : ''}
-                <span class="pdf-note">Si la vista previa no carga, usa "Abrir PDF" o "Abrir página" y descarga el archivo.</span>
+                <span class="pdf-note">Si la vista previa no carga, usa "Descargar" o "Abrir página".</span>
               `;
+              // añadir botón "Descargar" que use forceDownloadPdf
+              const dlBtn = document.createElement('button');
+              dlBtn.className = 'pdf-action';
+              dlBtn.textContent = 'Descargar';
+              dlBtn.onclick = () => forceDownloadPdf(direct, pageLink);
+              container.appendChild(dlBtn);
               return;
             } else {
               // direct existe pero no es fiable -> mostrar página de descarga si hay
@@ -754,6 +814,12 @@ async function addSongToDOM(song, id) {
                   <a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>
                   <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
                 `;
+                // ofrecer botón para intentar descargar (intentará fetch y fallará si CORS bloquea, luego abrirá la página)
+                const dlBtn2 = document.createElement('button');
+                dlBtn2.className = 'pdf-action';
+                dlBtn2.textContent = 'Descargar';
+                dlBtn2.onclick = () => forceDownloadPdf(direct, pageLink);
+                container.appendChild(dlBtn2);
                 return;
               }
             }
@@ -762,6 +828,11 @@ async function addSongToDOM(song, id) {
               <a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>
               <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
             `;
+            const dlBtn3 = document.createElement('button');
+            dlBtn3.className = 'pdf-action';
+            dlBtn3.textContent = 'Descargar';
+            dlBtn3.onclick = () => forceDownloadPdf(direct, pageLink);
+            container.appendChild(dlBtn3);
             return;
           }
         } catch (e) {
@@ -773,11 +844,24 @@ async function addSongToDOM(song, id) {
           ${direct ? `<a class="pdf-action" href="${direct}" target="_blank" rel="noopener noreferrer">Descargar / Abrir PDF</a>` : ''}
           <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
         `;
+        if (container) {
+          const dlBtnF = document.createElement('button');
+          dlBtnF.className = 'pdf-action';
+          dlBtnF.textContent = 'Descargar';
+          dlBtnF.onclick = () => forceDownloadPdf(direct, pageLink);
+          container.appendChild(dlBtnF);
+        }
       })();
     } else {
       // Desktop: enlazamos al enlace directo si existe, sino a la página de descarga (más cómodo en PC)
       const link = direct || page;
       tdFile.innerHTML = `<a href="${link}" target="_blank" rel="noopener noreferrer">${song.fileName || 'PDF'}</a>`;
+      // añadir botón descargar que intente fetch->blob (si falla, abre fallback)
+      const dlBtnDesktop = document.createElement('button');
+      dlBtnDesktop.className = 'pdf-action';
+      dlBtnDesktop.textContent = 'Descargar';
+      dlBtnDesktop.onclick = () => forceDownloadPdf(direct || page, page || direct);
+      tdFile.appendChild(dlBtnDesktop);
     }
   } else {
     tdFile.textContent = "";
