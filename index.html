@@ -114,10 +114,7 @@ td:nth-child(4){white-space:pre-line;text-align:left;font-size:0.9em;}
 body.overlayLocked{overflow:hidden;height:100vh;}
 
 /* =========================
-   RESPONSIVE / MOBILE FIXES (mejor experiencia en móviles)
-   - tablas desplazables
-   - minitaturas de video en móvil (evita iframes pesados)
-   - PDF: botón "Abrir PDF" mejorado para móviles
+   RESPONSIVE / MOBILE FIXES - PDF SIN GOOGLE DOCS VIEWER
    ========================= */
 
 /* horizontal scroll for tables on small screens */
@@ -129,7 +126,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
 .play-overlay{position:relative;display:flex;align-items:center;justify-content:center;height:100%;}
 .play-btn{background:rgba(74,144,226,0.95);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:18px;display:flex;align-items:center;justify-content:center;}
 
-/* IMPROVED PDF HANDLING FOR MOBILE */
+/* PDF MOBILE OPTIMIZATION - SIN GOOGLE DOCS VIEWER */
 .pdf-container-mobile {
   display: flex;
   flex-direction: column;
@@ -139,7 +136,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
   padding: 8px;
 }
 
-.pdf-btn {
+.pdf-btn-mobile {
   display: inline-block;
   padding: 10px 16px;
   background: #4A90E2;
@@ -152,19 +149,19 @@ body.overlayLocked{overflow:hidden;height:100vh;}
   transition: background-color 0.3s ease;
 }
 
-.pdf-btn:hover {
+.pdf-btn-mobile:hover {
   background: #357ABD;
   color: #fff;
 }
 
-.pdf-btn.secondary {
+.pdf-btn-secondary {
   background: #6c757d;
   font-size: 0.85em;
   padding: 6px 12px;
   min-width: 100px;
 }
 
-.pdf-btn.secondary:hover {
+.pdf-btn-secondary:hover {
   background: #5a6268;
 }
 
@@ -351,80 +348,6 @@ function extractYouTubeID(url) {
   if (!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|\/embed\/)([^&?/]+)/);
   return m ? m[1] : null;
-}
-
-/* Función mejorada para detectar dispositivos móviles */
-function isMobileDevice() {
-  return window.matchMedia && window.matchMedia("(max-width:520px)").matches;
-}
-
-/* Función mejorada para detectar el User Agent móvil */
-function isMobileUserAgent() {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-}
-
-/* Función que combina ambas detecciones */
-function isMobile() {
-  return isMobileDevice() || isMobileUserAgent();
-}
-
-/* Función mejorada para crear botones de PDF en móviles */
-function createMobilePDFButtons(direct, page, fileName) {
-  const container = document.createElement('div');
-  container.className = 'pdf-container-mobile';
-  
-  // Botón principal - preferir enlace directo
-  const primaryBtn = document.createElement('a');
-  primaryBtn.className = 'pdf-btn';
-  primaryBtn.target = '_blank';
-  primaryBtn.rel = 'noopener';
-  
-  if (direct) {
-    primaryBtn.href = direct;
-    primaryBtn.textContent = '📄 Abrir PDF';
-  } else if (page) {
-    primaryBtn.href = page;
-    primaryBtn.textContent = '📄 Ver PDF';
-  }
-  
-  container.appendChild(primaryBtn);
-  
-  // Botón secundario como fallback
-  if (direct && page && direct !== page) {
-    const secondaryBtn = document.createElement('a');
-    secondaryBtn.className = 'pdf-btn secondary';
-    secondaryBtn.href = page;
-    secondaryBtn.target = '_blank';
-    secondaryBtn.rel = 'noopener';
-    secondaryBtn.textContent = 'Página de descarga';
-    container.appendChild(secondaryBtn);
-  }
-  
-  // Mostrar nombre del archivo si está disponible
-  if (fileName) {
-    const fileNameDiv = document.createElement('div');
-    fileNameDiv.className = 'pdf-filename';
-    fileNameDiv.textContent = fileName;
-    container.appendChild(fileNameDiv);
-  }
-  
-  return container;
-}
-
-/* Función mejorada para intentar múltiples estrategias de enlaces de PDF */
-function createPDFLinks(direct, page, fileName) {
-  if (isMobile()) {
-    return createMobilePDFButtons(direct, page, fileName);
-  } else {
-    // Para desktop, mantener comportamiento original
-    const link = direct || page;
-    const linkElement = document.createElement('a');
-    linkElement.href = link;
-    linkElement.target = '_blank';
-    linkElement.rel = 'noopener';
-    linkElement.textContent = fileName || 'PDF';
-    return linkElement;
-  }
 }
 
 /* Mantenimiento: evita que se cargue el contenido antes del login. */
@@ -725,7 +648,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-/* Mostrar canciones - FUNCIÓN MEJORADA CON MEJOR MANEJO DE PDF EN MÓVILES */
+/* ========== FUNCIÓN ADDSONGSTODOM CORREGIDA - SIN GOOGLE DOCS VIEWER ========== */
 async function addSongToDOM(song, id) {
   let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
   if (!block) {
@@ -741,11 +664,14 @@ async function addSongToDOM(song, id) {
   const tbody = block.querySelector("tbody");
   const tr = document.createElement("tr");
 
+  // VIDEO
   const tdVideo = document.createElement("td");
   tdVideo.dataset.label = "Video";
   if (song.video) {
     const vid = extractYouTubeID(song.video);
-    if (isMobile() && vid) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia("(max-width:520px)").matches;
+    
+    if (isMobile && vid) {
       const thumb = document.createElement('div');
       thumb.className = 'video-thumb';
       const link = document.createElement('a');
@@ -755,8 +681,8 @@ async function addSongToDOM(song, id) {
       const img = document.createElement('img');
       img.src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
       img.alt = `thumb ${vid}`;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
       img.onerror = function() {
-        // Fallback si no se puede cargar la imagen
         this.style.display = 'none';
         const placeholder = document.createElement('div');
         placeholder.style.cssText = 'width:100%;height:100%;background:#333;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;';
@@ -774,25 +700,78 @@ async function addSongToDOM(song, id) {
     tdVideo.textContent = "";
   }
 
+  // PDF - SOLUCIÓN DEFINITIVA SIN GOOGLE DOCS VIEWER
   const tdFile = document.createElement("td");
   tdFile.dataset.label = "Cifrado PDF";
   
-  // Usar la función mejorada para crear enlaces de PDF
+  // Usar las propiedades correctas de Firebase
   const direct = song.fileURLDirect || song.fileDirect || "";
   const page = song.fileURL || song.fileURLPage || "";
   const fileName = song.fileName || "";
-
+  
   if (direct || page) {
-    const pdfElement = createPDFLinks(direct, page, fileName);
-    tdFile.appendChild(pdfElement);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.matchMedia("(max-width:520px)").matches;
+    
+    if (isMobile) {
+      // MÓVIL: Botones directos SIN Google Docs Viewer
+      const container = document.createElement('div');
+      container.className = 'pdf-container-mobile';
+      
+      const primaryBtn = document.createElement('a');
+      primaryBtn.className = 'pdf-btn-mobile';
+      primaryBtn.target = '_blank';
+      primaryBtn.rel = 'noopener';
+      
+      if (direct) {
+        primaryBtn.href = direct;
+        primaryBtn.textContent = '📄 Abrir PDF';
+      } else if (page) {
+        primaryBtn.href = page;
+        primaryBtn.textContent = '📄 Ver PDF';
+      }
+      
+      container.appendChild(primaryBtn);
+      
+      // Botón secundario como fallback
+      if (direct && page && direct !== page) {
+        const secondaryBtn = document.createElement('a');
+        secondaryBtn.className = 'pdf-btn-mobile pdf-btn-secondary';
+        secondaryBtn.href = page;
+        secondaryBtn.target = '_blank';
+        secondaryBtn.rel = 'noopener';
+        secondaryBtn.textContent = 'Página de descarga';
+        container.appendChild(secondaryBtn);
+      }
+      
+      // Mostrar nombre del archivo
+      if (fileName) {
+        const fileNameDiv = document.createElement('div');
+        fileNameDiv.className = 'pdf-filename';
+        fileNameDiv.textContent = fileName;
+        container.appendChild(fileNameDiv);
+      }
+      
+      tdFile.appendChild(container);
+    } else {
+      // DESKTOP: enlace simple
+      const link = direct || page;
+      const linkElement = document.createElement('a');
+      linkElement.href = link;
+      linkElement.target = '_blank';
+      linkElement.rel = 'noopener';
+      linkElement.textContent = fileName || 'PDF';
+      tdFile.appendChild(linkElement);
+    }
   } else {
     tdFile.textContent = "Sin PDF";
   }
 
+  // TONO
   const tdChords = document.createElement("td");
   tdChords.dataset.label = "Tono";
   tdChords.textContent = song.chords || "";
 
+  // MÚSICOS
   const tdNote = document.createElement("td");
   tdNote.dataset.label = "Músicos";
   tdNote.textContent = song.musicos ? Object.entries(song.musicos).map(([k,v])=>`${k}: ${v}`).join('\n') : "";
