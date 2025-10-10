@@ -117,7 +117,7 @@ body.overlayLocked{overflow:hidden;height:100vh;}
    RESPONSIVE / MOBILE FIXES (mejor experiencia en móviles)
    - tablas desplazables
    - minitaturas de video en móvil (evita iframes pesados)
-   - PDF: botón "Abrir PDF" + Google Viewer fallback
+   - PDF: botón "Abrir PDF" mejorado para móviles
    ========================= */
 
 /* horizontal scroll for tables on small screens */
@@ -128,6 +128,53 @@ body.overlayLocked{overflow:hidden;height:100vh;}
 .video-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
 .play-overlay{position:relative;display:flex;align-items:center;justify-content:center;height:100%;}
 .play-btn{background:rgba(74,144,226,0.95);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:18px;display:flex;align-items:center;justify-content:center;}
+
+/* IMPROVED PDF HANDLING FOR MOBILE */
+.pdf-container-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+.pdf-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  background: #4A90E2;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  min-width: 120px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.pdf-btn:hover {
+  background: #357ABD;
+  color: #fff;
+}
+
+.pdf-btn.secondary {
+  background: #6c757d;
+  font-size: 0.85em;
+  padding: 6px 12px;
+  min-width: 100px;
+}
+
+.pdf-btn.secondary:hover {
+  background: #5a6268;
+}
+
+.pdf-filename {
+  font-size: 0.85em;
+  color: #666;
+  text-align: center;
+  margin-top: 4px;
+  word-break: break-word;
+}
 
 /* Small phone adjustments */
 @media (max-width:520px){
@@ -142,11 +189,6 @@ body.overlayLocked{overflow:hidden;height:100vh;}
 @media (min-width:521px){
   .video-thumb, .play-overlay, .play-btn { display:none !important; }
 }
-
-/* extra small helpers for PDF buttons */
-.pdf-action { display:inline-block;padding:8px 10px;border-radius:8px;color:#fff;background:#4A90E2;text-decoration:none;margin:6px 6px;font-size:0.9em; border:none; cursor:pointer;}
-.pdf-action.secondary { background:#6c757d; }
-.pdf-note { font-size:0.82em;color:#666;margin-top:6px;display:block;text-align:center; }
 </style>
 </head>
 <body class="overlayLocked">
@@ -309,6 +351,80 @@ function extractYouTubeID(url) {
   if (!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|\/embed\/)([^&?/]+)/);
   return m ? m[1] : null;
+}
+
+/* Función mejorada para detectar dispositivos móviles */
+function isMobileDevice() {
+  return window.matchMedia && window.matchMedia("(max-width:520px)").matches;
+}
+
+/* Función mejorada para detectar el User Agent móvil */
+function isMobileUserAgent() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+/* Función que combina ambas detecciones */
+function isMobile() {
+  return isMobileDevice() || isMobileUserAgent();
+}
+
+/* Función mejorada para crear botones de PDF en móviles */
+function createMobilePDFButtons(direct, page, fileName) {
+  const container = document.createElement('div');
+  container.className = 'pdf-container-mobile';
+  
+  // Botón principal - preferir enlace directo
+  const primaryBtn = document.createElement('a');
+  primaryBtn.className = 'pdf-btn';
+  primaryBtn.target = '_blank';
+  primaryBtn.rel = 'noopener';
+  
+  if (direct) {
+    primaryBtn.href = direct;
+    primaryBtn.textContent = '📄 Abrir PDF';
+  } else if (page) {
+    primaryBtn.href = page;
+    primaryBtn.textContent = '📄 Ver PDF';
+  }
+  
+  container.appendChild(primaryBtn);
+  
+  // Botón secundario como fallback
+  if (direct && page && direct !== page) {
+    const secondaryBtn = document.createElement('a');
+    secondaryBtn.className = 'pdf-btn secondary';
+    secondaryBtn.href = page;
+    secondaryBtn.target = '_blank';
+    secondaryBtn.rel = 'noopener';
+    secondaryBtn.textContent = 'Página de descarga';
+    container.appendChild(secondaryBtn);
+  }
+  
+  // Mostrar nombre del archivo si está disponible
+  if (fileName) {
+    const fileNameDiv = document.createElement('div');
+    fileNameDiv.className = 'pdf-filename';
+    fileNameDiv.textContent = fileName;
+    container.appendChild(fileNameDiv);
+  }
+  
+  return container;
+}
+
+/* Función mejorada para intentar múltiples estrategias de enlaces de PDF */
+function createPDFLinks(direct, page, fileName) {
+  if (isMobile()) {
+    return createMobilePDFButtons(direct, page, fileName);
+  } else {
+    // Para desktop, mantener comportamiento original
+    const link = direct || page;
+    const linkElement = document.createElement('a');
+    linkElement.href = link;
+    linkElement.target = '_blank';
+    linkElement.rel = 'noopener';
+    linkElement.textContent = fileName || 'PDF';
+    return linkElement;
+  }
 }
 
 /* Mantenimiento: evita que se cargue el contenido antes del login. */
@@ -558,123 +674,6 @@ async function uploadToGoFile(file) {
   return fileData; // { fileURL, fileURLDirect }
 }
 
-/* Helper para comprobar si un enlace directo apunta realmente a un PDF accesible
-   - Intentamos un HEAD; si falla, intentamos una pequeña GET con Range.
-   - Si el servidor no permite CORS o bloquea, la comprobación devolverá false.
-   - Usamos AbortController para timeout (4s).
-*/
-async function isPdfDirectAccessible(url, timeout = 4000) {
-  if (!url) return false;
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    // Primero intentamos HEAD
-    let resp = await fetch(url, { method: 'HEAD', signal: controller.signal });
-    clearTimeout(id);
-    if (resp && resp.ok) {
-      const ct = (resp.headers.get('content-type') || '').toLowerCase();
-      if (ct.includes('pdf')) return true;
-      // Content-Disposition puede contener nombre .pdf
-      const cd = (resp.headers.get('content-disposition') || '').toLowerCase();
-      if (cd.includes('.pdf')) return true;
-      return false;
-    }
-  } catch (err) {
-    // puede fallar por CORS o porque el servidor no admite HEAD
-  } finally {
-    clearTimeout(id);
-  }
-
-  // Segundo intento: GET con Range para no descargar todo
-  const controller2 = new AbortController();
-  const id2 = setTimeout(() => controller2.abort(), timeout);
-  try {
-    const resp2 = await fetch(url, {
-      method: 'GET',
-      headers: { Range: 'bytes=0-1023' }, // pedimos sólo el inicio (si el servidor lo soporta)
-      signal: controller2.signal,
-      cache: 'no-store'
-    });
-    clearTimeout(id2);
-    if (resp2 && resp2.ok) {
-      const ct2 = (resp2.headers.get('content-type') || '').toLowerCase();
-      if (ct2.includes('pdf')) return true;
-      const cd2 = (resp2.headers.get('content-disposition') || '').toLowerCase();
-      if (cd2.includes('.pdf')) return true;
-      // como heurística adicional, mirar la primera parte del body (texto) buscando "%PDF"
-      try {
-        const blob = await resp2.blob();
-        // No convertimos todo a texto; usamos slice y text()
-        const slice = blob.slice(0, 512);
-        const txt = await slice.text().catch(()=>'');
-        if (txt.includes('%PDF')) return true;
-      } catch (e) {
-        // ignore
-      }
-    }
-  } catch (err) {
-    // probablemente CORS o timeout -> no accesible
-  } finally {
-    clearTimeout(id2);
-  }
-
-  return false;
-}
-
-/* NUEVA FUNCIÓN: fuerza descarga vía fetch->blob y fallback a abrir la página */
-async function forceDownloadPdf(directUrl, fallbackUrl) {
-  if (!directUrl && !fallbackUrl) {
-    alert('No hay enlace disponible para descargar.');
-    return;
-  }
-
-  // Timeout helper
-  const timeoutMs = 8000;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  if (directUrl) {
-    try {
-      const resp = await fetch(directUrl, { method: 'GET', signal: controller.signal, cache: 'no-store' });
-      clearTimeout(timer);
-      if (!resp.ok) throw new Error('Respuesta no OK: ' + resp.status);
-      const ct = (resp.headers.get('content-type') || '').toLowerCase();
-      // Aceptamos si parece PDF por headers, o intentamos detectar por contenido
-      const blob = await resp.blob();
-      const headText = await blob.slice(0, 8).text().catch(()=>'');
-      const isPdf = ct.includes('pdf') || headText.includes('%PDF');
-      if (!isPdf) throw new Error('Recurso no parece PDF (content-type / contenido).');
-
-      // Crear enlace para forzar descarga
-      const urlBlob = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = urlBlob;
-      a.download = (directUrl.split('/').pop() || 'archivo.pdf');
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(urlBlob), 10000);
-      return;
-    } catch (err) {
-      // fallo (CORS, timeout, no PDF, etc.)
-      console.warn('forceDownloadPdf: no se pudo descargar directamente:', err && err.message ? err.message : err);
-      // continuar al fallback
-    }
-  } else {
-    clearTimeout(timer);
-  }
-
-  // Fallback: abrir la página de GoFile (o el enlace de página)
-  if (fallbackUrl) {
-    window.open(fallbackUrl, '_blank', 'noopener');
-    alert('No fue posible descargar directamente. Se ha abierto la página de descarga; desde ahí pulsa "Descargar".');
-  } else if (directUrl) {
-    window.open(directUrl, '_blank', 'noopener');
-  } else {
-    alert('No hay enlace disponible para abrir o descargar.');
-  }
-}
-
 /* Edit modal helpers */
 const editModal = document.getElementById("editModal");
 const editVideo = document.getElementById("editVideo");
@@ -726,7 +725,7 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-/* Mostrar canciones */
+/* Mostrar canciones - FUNCIÓN MEJORADA CON MEJOR MANEJO DE PDF EN MÓVILES */
 async function addSongToDOM(song, id) {
   let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
   if (!block) {
@@ -746,8 +745,7 @@ async function addSongToDOM(song, id) {
   tdVideo.dataset.label = "Video";
   if (song.video) {
     const vid = extractYouTubeID(song.video);
-    const isMobile = window.matchMedia && window.matchMedia("(max-width:520px)").matches;
-    if (isMobile && vid) {
+    if (isMobile() && vid) {
       const thumb = document.createElement('div');
       thumb.className = 'video-thumb';
       const link = document.createElement('a');
@@ -757,6 +755,14 @@ async function addSongToDOM(song, id) {
       const img = document.createElement('img');
       img.src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
       img.alt = `thumb ${vid}`;
+      img.onerror = function() {
+        // Fallback si no se puede cargar la imagen
+        this.style.display = 'none';
+        const placeholder = document.createElement('div');
+        placeholder.style.cssText = 'width:100%;height:100%;background:#333;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;';
+        placeholder.textContent = 'Video';
+        link.appendChild(placeholder);
+      };
       link.appendChild(img);
       thumb.appendChild(link);
       tdVideo.appendChild(thumb);
@@ -770,101 +776,17 @@ async function addSongToDOM(song, id) {
 
   const tdFile = document.createElement("td");
   tdFile.dataset.label = "Cifrado PDF";
-  // Preferir fileURLDirect si existe
+  
+  // Usar la función mejorada para crear enlaces de PDF
   const direct = song.fileURLDirect || song.fileDirect || "";
   const page = song.fileURL || song.fileURLPage || "";
+  const fileName = song.fileName || "";
 
   if (direct || page) {
-    // NOTA: muchos viewers (docs.google.com/gview, drive viewer, iframes) fallan en móvil si el servidor que sirve el PDF
-    // bloquea cabeceras o no expone Content-Type/CORS adecuados. Por eso en móviles intentamos comprobar automáticamente
-    // si el enlace directo sirve realmente un PDF (HEAD/GET). Si la comprobación falla mostramos la "página de descarga".
-    const isMobile = window.matchMedia && window.matchMedia("(max-width:520px)").matches;
-
-    if (isMobile) {
-      // coloque un contenedor con id único para mostrar el resultado de la comprobación async
-      const testContainerId = `pdfTest_${id || Math.random().toString(36).slice(2,8)}`;
-      tdFile.innerHTML = `<div id="${testContainerId}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-        <small style="color:#666;margin-bottom:6px;">Comprobando enlace PDF...</small>
-      </div>`;
-
-      // lanzamos la comprobación asíncrona y actualizamos el DOM según resultado
-      (async () => {
-        const container = document.getElementById(testContainerId);
-        const pageLink = page || direct;
-        try {
-          if (direct) {
-            const ok = await isPdfDirectAccessible(direct, 4000);
-            if (ok) {
-              container.innerHTML = `
-                <a class="pdf-action" href="${direct}" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
-                ${pageLink ? `<a class="pdf-action secondary" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>` : ''}
-                <span class="pdf-note">Si la vista previa no carga, usa "Descargar" o "Abrir página".</span>
-              `;
-              // añadir botón "Descargar" que use forceDownloadPdf
-              const dlBtn = document.createElement('button');
-              dlBtn.className = 'pdf-action';
-              dlBtn.textContent = 'Descargar';
-              dlBtn.onclick = () => forceDownloadPdf(direct, pageLink);
-              container.appendChild(dlBtn);
-              return;
-            } else {
-              // direct existe pero no es fiable -> mostrar página de descarga si hay
-              if (pageLink) {
-                container.innerHTML = `
-                  <a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>
-                  <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
-                `;
-                // ofrecer botón para intentar descargar (intentará fetch y fallará si CORS bloquea, luego abrirá la página)
-                const dlBtn2 = document.createElement('button');
-                dlBtn2.className = 'pdf-action';
-                dlBtn2.textContent = 'Descargar';
-                dlBtn2.onclick = () => forceDownloadPdf(direct, pageLink);
-                container.appendChild(dlBtn2);
-                return;
-              }
-            }
-          } else if (pageLink) {
-            container.innerHTML = `
-              <a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>
-              <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
-            `;
-            const dlBtn3 = document.createElement('button');
-            dlBtn3.className = 'pdf-action';
-            dlBtn3.textContent = 'Descargar';
-            dlBtn3.onclick = () => forceDownloadPdf(direct, pageLink);
-            container.appendChild(dlBtn3);
-            return;
-          }
-        } catch (e) {
-          // en caso de error, mostrar fallback
-        }
-        // fallback final
-        container.innerHTML = `
-          ${pageLink ? `<a class="pdf-action" href="${pageLink}" target="_blank" rel="noopener noreferrer">Abrir página</a>` : ''}
-          ${direct ? `<a class="pdf-action" href="${direct}" target="_blank" rel="noopener noreferrer">Descargar / Abrir PDF</a>` : ''}
-          <span class="pdf-note">Si la vista previa aparece en blanco: abre la página y pulsa "Descargar".</span>
-        `;
-        if (container) {
-          const dlBtnF = document.createElement('button');
-          dlBtnF.className = 'pdf-action';
-          dlBtnF.textContent = 'Descargar';
-          dlBtnF.onclick = () => forceDownloadPdf(direct, pageLink);
-          container.appendChild(dlBtnF);
-        }
-      })();
-    } else {
-      // Desktop: enlazamos al enlace directo si existe, sino a la página de descarga (más cómodo en PC)
-      const link = direct || page;
-      tdFile.innerHTML = `<a href="${link}" target="_blank" rel="noopener noreferrer">${song.fileName || 'PDF'}</a>`;
-      // añadir botón descargar que intente fetch->blob (si falla, abre fallback)
-      const dlBtnDesktop = document.createElement('button');
-      dlBtnDesktop.className = 'pdf-action';
-      dlBtnDesktop.textContent = 'Descargar';
-      dlBtnDesktop.onclick = () => forceDownloadPdf(direct || page, page || direct);
-      tdFile.appendChild(dlBtnDesktop);
-    }
+    const pdfElement = createPDFLinks(direct, page, fileName);
+    tdFile.appendChild(pdfElement);
   } else {
-    tdFile.textContent = "";
+    tdFile.textContent = "Sin PDF";
   }
 
   const tdChords = document.createElement("td");
