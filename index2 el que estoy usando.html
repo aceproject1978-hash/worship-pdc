@@ -160,10 +160,6 @@ const VISITOR_PASSWORD = "pdc2025*";
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
 
-// URL de tu servidor InfinityFree
-const PDF_UPLOAD_URL = "https://pdf-pdc.free.nf/upload_pdf_Version2.php";
-const PDF_BASE_URL = "https://pdf-pdc.free.nf/pdfs/";
-
 let loggedIn = false;
 let visitorLogged = false;
 
@@ -279,6 +275,7 @@ logoutBtn.onclick = () => {
 };
 
 restoreSession();
+
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
 const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
 let selectedMusicians = {};
@@ -402,29 +399,26 @@ document.getElementById("closeSearch").onclick = () => {
   searchModal.style.display = "none";
 };
 
-async function uploadToInfinityFree(file) {
+async function uploadToGoFile(file) {
   const formData = new FormData();
   formData.append("file", file);
-  
+  const response = await fetch("https://store1.gofile.io/uploadFile", { method: "POST", body: formData });
+  const result = await response.json();
+
+  const data = result?.data || {};
+  const fileData = {
+    fileURL: data.downloadPage || data.link || "",
+    fileURLDirect: data.directLink || data.downloadUrl || data.download || ""
+  };
+
   try {
-    const response = await fetch(PDF_UPLOAD_URL, { 
-      method: "POST", 
-      body: formData 
-    });
-    const result = await response.json();
-    
-    if (result.success && result.url) {
-      return {
-        fileName: result.fileName || file.name,
-        fileURL: result.url
-      };
-    } else {
-      throw new Error(result.message || "Error al subir archivo");
+    if (!fileData.fileURLDirect && data.server && (data.fileId || data.code)) {
+      const id = data.fileId || data.code;
+      fileData.fileURLDirect = `https://srv${data.server}.gofile.io/download/${id}/${encodeURIComponent(file.name)}`;
     }
-  } catch (err) {
-    console.error("Error subiendo archivo:", err);
-    throw err;
-  }
+  } catch (e) {}
+
+  return fileData;
 }
 
 const editModal = document.getElementById("editModal");
@@ -516,14 +510,16 @@ async function addSongToDOM(song, id) {
   }
 
   const tdFile = document.createElement("td");
-  const fileURL = song.fileURL || "";
+  const direct = song.fileURLDirect || "";
+  const page = song.fileURL || "";
 
-  if (fileURL) {
+  if (direct || page) {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (isMobile) {
+      const downloadLink = direct || page;
       const btn = document.createElement('a');
-      btn.href = fileURL;
+      btn.href = downloadLink;
       btn.download = song.fileName || 'cifrado.pdf';
       btn.target = '_blank';
       btn.rel = 'noopener noreferrer';
@@ -532,13 +528,24 @@ async function addSongToDOM(song, id) {
       
       btn.onclick = (e) => {
         e.preventDefault();
-        window.location.href = fileURL;
+        window.location.href = downloadLink;
       };
       
       tdFile.style.textAlign = 'center';
       tdFile.appendChild(btn);
+      
+      if (page && page !== direct) {
+        const altLink = document.createElement('a');
+        altLink.href = page;
+        altLink.target = '_blank';
+        altLink.rel = 'noopener';
+        altLink.style.cssText = 'display:block;margin-top:6px;font-size:0.75em;color:#666;';
+        altLink.textContent = 'Ver en Gofile';
+        tdFile.appendChild(altLink);
+      }
     } else {
-      tdFile.innerHTML = `<a href="${fileURL}" target="_blank" rel="noopener">${song.fileName || 'Ver PDF'}</a>`;
+      const link = direct || page;
+      tdFile.innerHTML = `<a href="${link}" target="_blank" rel="noopener">${song.fileName || 'Ver PDF'}</a>`;
     }
   } else {
     tdFile.textContent = "Sin PDF";
@@ -626,12 +633,14 @@ document.getElementById("saveEdit").onclick = async () => {
 
     if (editFile.files.length > 0) {
       const file = editFile.files[0];
-      const fileData = await uploadToInfinityFree(file);
-      updates.fileURL = fileData.fileURL;
-      updates.fileName = fileData.fileName;
+      const fileData = await uploadToGoFile(file);
+      if (fileData.fileURL) updates.fileURL = fileData.fileURL;
+      if (fileData.fileURLDirect) updates.fileURLDirect = fileData.fileURLDirect;
+      updates.fileName = file.name;
     } else {
       if (currentEditSong?.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
+        if (currentEditSong.fileURLDirect) updates.fileURLDirect = currentEditSong.fileURLDirect;
         if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
       }
     }
@@ -660,10 +669,11 @@ document.getElementById("addLine").onclick = async () => {
     let fileDataToSave = {};
     if (fileInput.files.length > 0) {
       const file = fileInput.files[0];
-      const fileData = await uploadToInfinityFree(file);
+      const fileData = await uploadToGoFile(file);
       fileDataToSave = {
-        fileName: fileData.fileName,
-        fileURL: fileData.fileURL
+        fileName: file.name,
+        fileURL: fileData.fileURL || "",
+        fileURLDirect: fileData.fileURLDirect || ""
       };
     }
 
