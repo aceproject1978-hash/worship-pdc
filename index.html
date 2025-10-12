@@ -71,6 +71,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
 .table-container{width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
 .video-thumb{display:inline-block;width:160px;height:90px;border-radius:6px;overflow:hidden;background:#000}
 .video-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.file-uploaded{display:none;color:#28a745;font-weight:600;font-size:0.85em;padding:5px}
 @media (max-width:520px){
   table{min-width:700px;table-layout:auto}
   th,td{padding:8px;border:1px solid #ddd;font-size:0.92em}
@@ -82,6 +83,8 @@ body.overlayLocked{overflow:hidden;height:100vh}
   .video-thumb{display:none!important}
 }
 </style>
+<!-- WIDGET DE CLOUDINARY -->
+<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
@@ -124,7 +127,10 @@ body.overlayLocked{overflow:hidden;height:100vh}
         </tr>
         <tr>
           <td><div style="display:flex;align-items:center;gap:5px"><input type="url" id="videoURL" placeholder="https://..."><button type="button" id="searchVideoBtn">Buscar</button></div></td>
-          <td><input type="file" id="fileUpload" accept="application/pdf"></td>
+          <td>
+            <button type="button" id="uploadBtn" style="width:95%;background:#28a745;padding:8px">📤 Subir PDF</button>
+            <div id="fileUploaded" class="file-uploaded"></div>
+          </td>
           <td><div style="display:flex;align-items:center;gap:5px;justify-content:center"><input type="text" id="chords" placeholder="G - D - Em"><button type="button" id="toneBtn" class="tone-btn">🎵</button></div></td>
           <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
           <td><input type="date" id="customDate"></td>
@@ -140,7 +146,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
 <div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions"></div><div style="text-align:center;margin-top:12px"><button type="button" id="closeTone">Cerrar</button></div></div></div>
 <div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px"><button type="button" id="saveAssign">Guardar</button><button type="button" id="closeAssign">Cerrar</button></div></div></div>
 <div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px"><button type="button" id="closeSearch">Cerrar</button></div></div></div>
-<div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input type="url" id="editVideo"><label>Cifrado PDF</label><input type="file" id="editFile" accept="application/pdf"><label>Tono</label><input type="text" id="editChords"><div id="editAssignFields"></div><label>Fecha</label><input type="date" id="editDate"></div><div class="edit-footer"><button type="button" id="saveEdit">Guardar</button><button type="button" id="cancelEdit">Cancelar</button></div></div></div>
+<div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input type="url" id="editVideo"><label>Cifrado PDF</label><button type="button" id="editUploadBtn" style="width:100%;background:#28a745;padding:8px;margin:5px 0">📤 Cambiar PDF</button><div id="editFileUploaded" class="file-uploaded"></div><label>Tono</label><input type="text" id="editChords"><div id="editAssignFields"></div><label>Fecha</label><input type="date" id="editDate"></div><div class="edit-footer"><button type="button" id="saveEdit">Guardar</button><button type="button" id="cancelEdit">Cancelar</button></div></div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -160,18 +166,62 @@ const VISITOR_PASSWORD = "pdc2025*";
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
 
-// CONFIGURACIÓN DE CLOUDINARY
 const CLOUDINARY_CLOUD_NAME = "dgzwru3x9";
 const CLOUDINARY_UPLOAD_PRESET = "worship_pdfs";
-const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`;
 
 let loggedIn = false;
 let visitorLogged = false;
+let uploadedFileData = null;
+let editUploadedFileData = null;
 
 const accessOverlay = document.getElementById("accessOverlay");
 const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
+
+// WIDGET DE CLOUDINARY
+const myWidget = cloudinary.createUploadWidget({
+  cloudName: CLOUDINARY_CLOUD_NAME,
+  uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+  sources: ['local'],
+  multiple: false,
+  clientAllowedFormats: ['pdf'],
+  maxFileSize: 10000000,
+  folder: 'worship-pdfs'
+}, (error, result) => {
+  if (!error && result && result.event === "success") {
+    console.log('✅ Archivo subido:', result.info);
+    uploadedFileData = {
+      fileName: result.info.original_filename + '.pdf',
+      fileURL: result.info.secure_url
+    };
+    document.getElementById('fileUploaded').textContent = '✅ ' + uploadedFileData.fileName;
+    document.getElementById('fileUploaded').style.display = 'block';
+  }
+});
+
+const editWidget = cloudinary.createUploadWidget({
+  cloudName: CLOUDINARY_CLOUD_NAME,
+  uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+  sources: ['local'],
+  multiple: false,
+  clientAllowedFormats: ['pdf'],
+  maxFileSize: 10000000,
+  folder: 'worship-pdfs'
+}, (error, result) => {
+  if (!error && result && result.event === "success") {
+    console.log('✅ Archivo subido:', result.info);
+    editUploadedFileData = {
+      fileName: result.info.original_filename + '.pdf',
+      fileURL: result.info.secure_url
+    };
+    document.getElementById('editFileUploaded').textContent = '✅ ' + editUploadedFileData.fileName;
+    document.getElementById('editFileUploaded').style.display = 'block';
+  }
+});
+
+document.getElementById("uploadBtn").onclick = () => myWidget.open();
+document.getElementById("editUploadBtn").onclick = () => editWidget.open();
 
 function extractYouTubeID(url) {
   if (!url) return null;
@@ -280,42 +330,6 @@ logoutBtn.onclick = () => {
 };
 
 restoreSession();
-
-// FUNCIÓN PARA SUBIR A CLOUDINARY
-async function uploadToCloudinary(file) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  formData.append("resource_type", "raw"); // ← LÍNEA NUEVA IMPORTANTE
-  
-  try {
-    console.log("📤 Subiendo archivo a Cloudinary:", file.name);
-    
-    // URL correcta para archivos RAW
-    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`;
-    
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      body: formData
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    console.log("✅ Archivo subido exitosamente:", result);
-    
-    return {
-      fileName: file.name,
-      fileURL: result.secure_url
-    };
-  } catch (err) {
-    console.error("❌ Error subiendo a Cloudinary:", err);
-    alert("Error al subir PDF: " + err.message);
-    throw err;
-  }
-}
 
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
 const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
@@ -442,7 +456,6 @@ document.getElementById("closeSearch").onclick = () => {
 
 const editModal = document.getElementById("editModal");
 const editVideo = document.getElementById("editVideo");
-const editFile = document.getElementById("editFile");
 const editChords = document.getElementById("editChords");
 const editAssignFields = document.getElementById("editAssignFields");
 const editDate = document.getElementById("editDate");
@@ -469,6 +482,8 @@ document.getElementById("cancelEdit").onclick = () => {
   editModal.style.display = "none";
   currentEditId = null;
   currentEditSong = null;
+  editUploadedFileData = null;
+  document.getElementById('editFileUploaded').style.display = 'none';
 };
 
 editModal.addEventListener('click', (e) => {
@@ -476,6 +491,8 @@ editModal.addEventListener('click', (e) => {
     editModal.style.display = 'none';
     currentEditId = null;
     currentEditSong = null;
+    editUploadedFileData = null;
+    document.getElementById('editFileUploaded').style.display = 'none';
   }
 });
 
@@ -485,6 +502,8 @@ window.addEventListener('keydown', (e) => {
       editModal.style.display = 'none';
       currentEditId = null;
       currentEditSong = null;
+      editUploadedFileData = null;
+      document.getElementById('editFileUploaded').style.display = 'none';
     }
     if (assignModal.style.display === 'flex') assignModal.style.display = 'none';
     if (searchModal.style.display === 'flex') searchModal.style.display = 'none';
@@ -572,8 +591,9 @@ async function addSongToDOM(song, id) {
       currentEditSong = song;
       editVideo.value = song.video || "";
       editChords.value = song.chords || "";
-      editFile.value = "";
       editDate.value = song.date || "";
+      editUploadedFileData = null;
+      document.getElementById('editFileUploaded').style.display = 'none';
       buildEditAssignFields(song.musicos || {});
       editModal.style.display = "flex";
     };
@@ -632,11 +652,9 @@ document.getElementById("saveEdit").onclick = async () => {
     if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
     else if (currentEditSong?.musicos) updates.musicos = currentEditSong.musicos;
 
-    if (editFile.files.length > 0) {
-      const file = editFile.files[0];
-      const fileData = await uploadToCloudinary(file);
-      updates.fileURL = fileData.fileURL;
-      updates.fileName = fileData.fileName;
+    if (editUploadedFileData) {
+      updates.fileURL = editUploadedFileData.fileURL;
+      updates.fileName = editUploadedFileData.fileName;
     } else {
       if (currentEditSong?.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
@@ -649,6 +667,8 @@ document.getElementById("saveEdit").onclick = async () => {
     editModal.style.display = "none";
     currentEditId = null;
     currentEditSong = null;
+    editUploadedFileData = null;
+    document.getElementById('editFileUploaded').style.display = 'none';
     renderSongs();
   } catch (err) {
     console.error(err);
@@ -658,39 +678,33 @@ document.getElementById("saveEdit").onclick = async () => {
 
 document.getElementById("addLine").onclick = async () => {
   const url = document.getElementById("videoURL").value.trim();
-  const fileInput = document.getElementById("fileUpload");
   const chords = document.getElementById("chords").value.trim();
   const date = document.getElementById("customDate").value;
 
   if (!date) return alert("Por favor, elige una fecha.");
 
   try {
-    let fileDataToSave = {};
-    if (fileInput.files.length > 0) {
-      const file = fileInput.files[0];
-      console.log("🔄 Iniciando subida de archivo...");
-      const fileData = await uploadToCloudinary(file);
-      fileDataToSave = {
-        fileName: fileData.fileName,
-        fileURL: fileData.fileURL
-      };
-      console.log("✅ Archivo subido exitosamente");
-    }
-
-    await addDoc(collection(db, "songs"), {
+    const songData = {
       video: url,
       chords,
       date,
-      musicos: selectedMusicians,
-      ...fileDataToSave
-    });
+      musicos: selectedMusicians
+    };
+
+    if (uploadedFileData) {
+      songData.fileName = uploadedFileData.fileName;
+      songData.fileURL = uploadedFileData.fileURL;
+    }
+
+    await addDoc(collection(db, "songs"), songData);
 
     alert("✅ Canción agregada correctamente.");
     document.getElementById("videoURL").value = "";
-    fileInput.value = "";
     document.getElementById("chords").value = "";
     document.getElementById("customDate").value = "";
     selectedMusicians = {};
+    uploadedFileData = null;
+    document.getElementById('fileUploaded').style.display = 'none';
     renderSongs();
   } catch (err) {
     console.error("❌ Error completo:", err);
