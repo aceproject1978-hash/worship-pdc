@@ -160,10 +160,9 @@ const VISITOR_PASSWORD = "pdc2025*";
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
 
-// CONFIGURACIÓN DE CLOUDINARY
-const CLOUDINARY_CLOUD_NAME = "dgzwru3x9";
-const CLOUDINARY_UPLOAD_PRESET = "worship_pdfs";
-const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`;
+// URL de tu servidor InfinityFree - AJUSTA ESTA URL SI ES NECESARIO
+const PDF_UPLOAD_URL = "https://pdf-pdc.free.nf/upload_pdf_Version2.php";
+const PDF_BASE_URL = "https://pdf-pdc.free.nf/pdfs/";
 
 let loggedIn = false;
 let visitorLogged = false;
@@ -280,39 +279,6 @@ logoutBtn.onclick = () => {
 };
 
 restoreSession();
-
-// FUNCIÓN PARA SUBIR A CLOUDINARY
-async function uploadToCloudinary(file) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  formData.append("folder", "worship-pdfs");
-  
-  try {
-    console.log("📤 Subiendo archivo a Cloudinary:", file.name);
-    
-    const response = await fetch(CLOUDINARY_UPLOAD_URL, {
-      method: "POST",
-      body: formData
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    console.log("✅ Archivo subido exitosamente:", result);
-    
-    return {
-      fileName: file.name,
-      fileURL: result.secure_url
-    };
-  } catch (err) {
-    console.error("❌ Error subiendo a Cloudinary:", err);
-    alert("Error al subir PDF: " + err.message);
-    throw err;
-  }
-}
 
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
 const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
@@ -437,6 +403,53 @@ document.getElementById("closeSearch").onclick = () => {
   searchModal.style.display = "none";
 };
 
+// FUNCIÓN MEJORADA CON LOGS Y MANEJO DE ERRORES
+async function uploadToInfinityFree(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  
+  try {
+    console.log("📤 Subiendo archivo:", file.name);
+    console.log("🌐 URL destino:", PDF_UPLOAD_URL);
+    
+    const response = await fetch(PDF_UPLOAD_URL, { 
+      method: "POST", 
+      body: formData,
+      mode: 'cors'
+    });
+    
+    console.log("📡 Respuesta status:", response.status);
+    console.log("📡 Respuesta headers:", response.headers);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error("❌ Respuesta no es JSON:", text);
+      throw new Error("El servidor no devolvió JSON. Verifica el archivo PHP.");
+    }
+    
+    const result = await response.json();
+    console.log("✅ Resultado:", result);
+    
+    if (result.success && result.url) {
+      return {
+        fileName: result.fileName || file.name,
+        fileURL: result.url
+      };
+    } else {
+      throw new Error(result.message || "Error al subir archivo");
+    }
+  } catch (err) {
+    console.error("❌ Error completo subiendo archivo:", err);
+    alert("❌ Error al subir PDF: " + err.message + "\n\nAbre la consola (F12) para más detalles.");
+    throw err;
+  }
+}
+
 const editModal = document.getElementById("editModal");
 const editVideo = document.getElementById("editVideo");
 const editFile = document.getElementById("editFile");
@@ -540,6 +553,11 @@ async function addSongToDOM(song, id) {
       btn.style.cssText = 'display:inline-block;padding:10px 16px;background:#28a745;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9em;';
       btn.textContent = '📥 Descargar PDF';
       
+      btn.onclick = (e) => {
+        e.preventDefault();
+        window.location.href = fileURL;
+      };
+      
       tdFile.style.textAlign = 'center';
       tdFile.appendChild(btn);
     } else {
@@ -631,7 +649,7 @@ document.getElementById("saveEdit").onclick = async () => {
 
     if (editFile.files.length > 0) {
       const file = editFile.files[0];
-      const fileData = await uploadToCloudinary(file);
+      const fileData = await uploadToInfinityFree(file);
       updates.fileURL = fileData.fileURL;
       updates.fileName = fileData.fileName;
     } else {
@@ -666,7 +684,7 @@ document.getElementById("addLine").onclick = async () => {
     if (fileInput.files.length > 0) {
       const file = fileInput.files[0];
       console.log("🔄 Iniciando subida de archivo...");
-      const fileData = await uploadToCloudinary(file);
+      const fileData = await uploadToInfinityFree(file);
       fileDataToSave = {
         fileName: fileData.fileName,
         fileURL: fileData.fileURL
