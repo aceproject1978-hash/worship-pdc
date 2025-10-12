@@ -286,12 +286,15 @@ async function uploadToCloudinary(file) {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  formData.append("folder", "worship-pdfs");
+  formData.append("resource_type", "raw"); // ← LÍNEA NUEVA IMPORTANTE
   
   try {
     console.log("📤 Subiendo archivo a Cloudinary:", file.name);
     
-    const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+    // URL correcta para archivos RAW
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/raw/upload`;
+    
+    const response = await fetch(uploadUrl, {
       method: "POST",
       body: formData
     });
