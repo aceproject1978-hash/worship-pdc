@@ -1,21 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visor PDF Cloudinary</title>
+  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6fb;
+      color: #333;
+      text-align: center;
+      margin: 40px;
+    }
+    h1 {
+      color: #4A90E2;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #4A90E2;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #357ABD;
+    }
+    #viewer {
+      margin-top: 30px;
+      width: 100%;
+      max-width: 900px;
+      margin-inline: auto;
+      display: flex;
+      justify-content: center;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
-  <button id="btn">Subir PDF</button>
-  <script>
-    const widget = cloudinary.createUploadWidget({
-      cloudName: "dgzwru3x9",
-      uploadPreset: "worship_pdfs",
-      resourceType: 'raw',
-      clientAllowedFormats: ['pdf']
-    }, (err, res) => {
-      console.log('Evento:', res?.event, 'Error:', err);
+  <h1>📄 Visor de PDF desde Cloudinary</h1>
+
+  <button id="uploadBtn">Subir PDF</button>
+
+  <div id="viewer">
+    <p style="color:#777;">Aquí aparecerá tu PDF después de subirlo.</p>
+  </div>
+
+  <script type="text/javascript">
+    // Configura el widget de Cloudinary
+    const myWidget = cloudinary.createUploadWidget({
+      cloudName: "dgzwru3x9",           // 👈 tu Cloud Name
+      uploadPreset: "worship_pdfs",     // 👈 tu Upload Preset
+      resourceType: "raw",              // 👈 MUY IMPORTANTE: tipo RAW
+      clientAllowedFormats: ["pdf"],    // solo PDFs
+      folder: "worship-pdfs"            // carpeta donde se guardan
+    }, (error, result) => {
+      if (!error && result && result.event === "success") {
+        console.log("✅ PDF subido correctamente:", result.info);
+
+        // URL segura del archivo subido
+        let pdfURL = result.info.secure_url;
+
+        // Por si acaso Cloudinary lo devolviera con image/
+        pdfURL = pdfURL.replace("/image/upload/", "/raw/upload/");
+
+        // Mostrar el PDF en la página
+        document.getElementById("viewer").innerHTML = `
+          <iframe src="${pdfURL}" title="PDF Viewer"></iframe>
+        `;
+      }
     });
 
-    document.getElementById('btn').onclick = () => widget.open();
+    document.getElementById("uploadBtn").addEventListener("click", function() {
+      myWidget.open();
+    });
   </script>
 </body>
 </html>
