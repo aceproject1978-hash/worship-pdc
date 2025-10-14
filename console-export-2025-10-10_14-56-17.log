@@ -1,6 +1,0 @@
-🔄 Iniciando subida de archivo... index (2).html:686:15
-📤 Subiendo archivo: La casa es tuya - Medley de adoración-1.pdf index (2).html:412:13
-🌐 URL destino: https://pdf-pdc.free.nf/upload_pdf_Version2.php index (2).html:413:13
-Solicitud desde otro origen bloqueada: la política de mismo origen impide leer el recurso remoto en https://pdf-pdc.free.nf/upload_pdf_Version2.php (razón: falta la cabecera CORS 'Access-Control-Allow-Origin'). Código de estado: 200.
-❌ Error completo subiendo archivo: TypeError: NetworkError when attempting to fetch resource. index (2).html:447:13
-❌ Error completo: TypeError: NetworkError when attempting to fetch resource. index (2).html:711:13

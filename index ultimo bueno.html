@@ -72,8 +72,6 @@ body.overlayLocked{overflow:hidden;height:100vh}
 .video-thumb{display:inline-block;width:160px;height:90px;border-radius:6px;overflow:hidden;background:#000}
 .video-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .file-uploaded{display:none;color:#28a745;font-weight:600;font-size:0.85em;padding:5px}
-.pdf-link{display:inline-block;padding:6px 12px;background:#28a745;color:#fff;border-radius:6px;text-decoration:none;font-weight:600;font-size:0.85em;margin:3px auto}
-.pdf-link:hover{background:#218838;text-decoration:none}
 @media (max-width:520px){
   table{min-width:700px;table-layout:auto}
   th,td{padding:8px;border:1px solid #ddd;font-size:0.92em}
@@ -167,6 +165,8 @@ const db = getFirestore(app);
 const VISITOR_PASSWORD = "pdc2025*";
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
+
+// UPLOADCARE CONFIG
 const UPLOADCARE_PUBLIC_KEY = "86a133366056523562";
 
 let loggedIn = false;
@@ -545,22 +545,28 @@ async function addSongToDOM(song, id) {
     }
   }
 
-  // AQUÍ ESTÁ LA CORRECCIÓN PRINCIPAL - MOSTRAR PDF EN LA CELDA
   const tdFile = document.createElement("td");
   const fileURL = song.fileURL || "";
 
   if (fileURL) {
-    const link = document.createElement('a');
-    link.href = fileURL;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.className = 'pdf-link';
-    link.textContent = '📄 ' + (song.fileName || 'Ver PDF');
-    tdFile.style.textAlign = 'center';
-    tdFile.appendChild(link);
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      const btn = document.createElement('a');
+      btn.href = fileURL;
+      btn.download = song.fileName || 'cifrado.pdf';
+      btn.target = '_blank';
+      btn.rel = 'noopener noreferrer';
+      btn.style.cssText = 'display:inline-block;padding:10px 16px;background:#28a745;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9em;';
+      btn.textContent = '📥 Descargar PDF';
+      
+      tdFile.style.textAlign = 'center';
+      tdFile.appendChild(btn);
+    } else {
+      tdFile.innerHTML = `<a href="${fileURL}" target="_blank" rel="noopener">${song.fileName || 'Ver PDF'}</a>`;
+    }
   } else {
     tdFile.textContent = "Sin PDF";
-    tdFile.style.color = "#999";
   }
 
   const tdChords = document.createElement("td");
