@@ -85,7 +85,6 @@ body.overlayLocked{overflow:hidden;height:100vh}
   .video-thumb{display:none!important}
 }
 </style>
-<!-- UPLOADCARE WIDGET -->
 <script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 </head>
 <body class="overlayLocked">
@@ -179,7 +178,6 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// UPLOADCARE WIDGET PARA AGREGAR
 document.getElementById("uploadBtn").onclick = () => {
   uploadcare.openDialog(null, {
     publicKey: UPLOADCARE_PUBLIC_KEY,
@@ -200,7 +198,6 @@ document.getElementById("uploadBtn").onclick = () => {
   });
 };
 
-// UPLOADCARE WIDGET PARA EDITAR
 document.getElementById("editUploadBtn").onclick = () => {
   uploadcare.openDialog(null, {
     publicKey: UPLOADCARE_PUBLIC_KEY,
@@ -545,9 +542,9 @@ async function addSongToDOM(song, id) {
     }
   }
 
-  // AQUÍ ESTÁ LA CORRECCIÓN PRINCIPAL - MOSTRAR PDF EN LA CELDA
   const tdFile = document.createElement("td");
   const fileURL = song.fileURL || "";
+  console.log('🔍 Verificando PDF en render:', {fileURL, fileName: song.fileName});
 
   if (fileURL) {
     const link = document.createElement('a');
@@ -612,7 +609,11 @@ async function renderSongs() {
   container.innerHTML = "";
   try {
     const querySnapshot = await getDocs(collection(db, "songs"));
-    querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
+    querySnapshot.forEach(docSnap => {
+      const songData = docSnap.data();
+      console.log('📋 Canción desde Firebase:', songData);
+      addSongToDOM(songData, docSnap.id);
+    });
   } catch (err) {
     console.error(err);
     container.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
@@ -686,9 +687,13 @@ document.getElementById("addLine").onclick = async () => {
     if (uploadedFileData) {
       songData.fileName = uploadedFileData.fileName;
       songData.fileURL = uploadedFileData.fileURL;
+      console.log('✅ Guardando PDF:', songData);
+    } else {
+      console.log('⚠️ No hay PDF para guardar');
     }
 
-    await addDoc(collection(db, "songs"), songData);
+    const docRef = await addDoc(collection(db, "songs"), songData);
+    console.log('✅ Documento guardado con ID:', docRef.id);
 
     alert("✅ Canción agregada correctamente.");
     document.getElementById("videoURL").value = "";
@@ -697,7 +702,8 @@ document.getElementById("addLine").onclick = async () => {
     selectedMusicians = {};
     uploadedFileData = null;
     document.getElementById('fileUploaded').style.display = 'none';
-    renderSongs();
+    
+    await renderSongs();
   } catch (err) {
     console.error("❌ Error completo:", err);
     alert("❌ Error: " + (err.message || "falló al guardar"));
