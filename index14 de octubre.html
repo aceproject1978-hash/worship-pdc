@@ -83,8 +83,8 @@ body.overlayLocked{overflow:hidden;height:100vh}
   .video-thumb{display:none!important}
 }
 </style>
-<!-- UPLOADCARE WIDGET -->
-<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+<!-- WIDGET DE CLOUDINARY -->
+<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
@@ -166,8 +166,8 @@ const VISITOR_PASSWORD = "pdc2025*";
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
 
-// UPLOADCARE CONFIG
-const UPLOADCARE_PUBLIC_KEY = "86a133366056523562";
+const CLOUDINARY_CLOUD_NAME = "dgzwru3x9";
+const CLOUDINARY_UPLOAD_PRESET = "worship_pdfs";
 
 let loggedIn = false;
 let visitorLogged = false;
@@ -179,47 +179,49 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// UPLOADCARE WIDGET PARA AGREGAR
-document.getElementById("uploadBtn").onclick = () => {
-  uploadcare.openDialog(null, {
-    publicKey: UPLOADCARE_PUBLIC_KEY,
-    tabs: 'file',
-    multiple: false,
-    imagesOnly: false,
-    inputAcceptTypes: '.pdf'
-  }).done((file) => {
-    file.promise().done((fileInfo) => {
-      console.log('✅ Archivo subido:', fileInfo);
-      uploadedFileData = {
-        fileName: fileInfo.name,
-        fileURL: fileInfo.cdnUrl
-      };
-      document.getElementById('fileUploaded').textContent = '✅ ' + uploadedFileData.fileName;
-      document.getElementById('fileUploaded').style.display = 'block';
-    });
-  });
-};
+// WIDGET DE CLOUDINARY
+const myWidget = cloudinary.createUploadWidget({
+  cloudName: CLOUDINARY_CLOUD_NAME,
+  uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+  sources: ['local'],
+  multiple: false,
+  clientAllowedFormats: ['pdf'],
+  maxFileSize: 10000000,
+  folder: 'worship-pdfs'
+}, (error, result) => {
+  if (!error && result && result.event === "success") {
+    console.log('✅ Archivo subido:', result.info);
+    uploadedFileData = {
+      fileName: result.info.original_filename + '.pdf',
+      fileURL: result.info.secure_url
+    };
+    document.getElementById('fileUploaded').textContent = '✅ ' + uploadedFileData.fileName;
+    document.getElementById('fileUploaded').style.display = 'block';
+  }
+});
 
-// UPLOADCARE WIDGET PARA EDITAR
-document.getElementById("editUploadBtn").onclick = () => {
-  uploadcare.openDialog(null, {
-    publicKey: UPLOADCARE_PUBLIC_KEY,
-    tabs: 'file',
-    multiple: false,
-    imagesOnly: false,
-    inputAcceptTypes: '.pdf'
-  }).done((file) => {
-    file.promise().done((fileInfo) => {
-      console.log('✅ Archivo subido:', fileInfo);
-      editUploadedFileData = {
-        fileName: fileInfo.name,
-        fileURL: fileInfo.cdnUrl
-      };
-      document.getElementById('editFileUploaded').textContent = '✅ ' + editUploadedFileData.fileName;
-      document.getElementById('editFileUploaded').style.display = 'block';
-    });
-  });
-};
+const editWidget = cloudinary.createUploadWidget({
+  cloudName: CLOUDINARY_CLOUD_NAME,
+  uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+  sources: ['local'],
+  multiple: false,
+  clientAllowedFormats: ['pdf'],
+  maxFileSize: 10000000,
+  folder: 'worship-pdfs'
+}, (error, result) => {
+  if (!error && result && result.event === "success") {
+    console.log('✅ Archivo subido:', result.info);
+    editUploadedFileData = {
+      fileName: result.info.original_filename + '.pdf',
+      fileURL: result.info.secure_url
+    };
+    document.getElementById('editFileUploaded').textContent = '✅ ' + editUploadedFileData.fileName;
+    document.getElementById('editFileUploaded').style.display = 'block';
+  }
+});
+
+document.getElementById("uploadBtn").onclick = () => myWidget.open();
+document.getElementById("editUploadBtn").onclick = () => editWidget.open();
 
 function extractYouTubeID(url) {
   if (!url) return null;
