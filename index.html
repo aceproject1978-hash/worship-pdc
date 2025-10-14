@@ -178,7 +178,15 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 
+// UPLOADCARE WIDGET PARA AGREGAR - CON DEBUG COMPLETO
 document.getElementById("uploadBtn").onclick = () => {
+  if (typeof uploadcare === 'undefined') {
+    alert('⚠️ El sistema de subida de archivos no está cargado. Recarga la página.');
+    console.error('❌ Uploadcare no está definido');
+    return;
+  }
+  
+  console.log('🔵 Abriendo diálogo de Uploadcare...');
   uploadcare.openDialog(null, {
     publicKey: UPLOADCARE_PUBLIC_KEY,
     tabs: 'file',
@@ -186,19 +194,34 @@ document.getElementById("uploadBtn").onclick = () => {
     imagesOnly: false,
     inputAcceptTypes: '.pdf'
   }).done((file) => {
+    console.log('1️⃣ Archivo seleccionado, procesando...');
     file.promise().done((fileInfo) => {
-      console.log('✅ Archivo subido:', fileInfo);
+      console.log('2️⃣ Archivo subido a Uploadcare:', fileInfo);
       uploadedFileData = {
         fileName: fileInfo.name,
         fileURL: fileInfo.cdnUrl
       };
+      console.log('3️⃣ uploadedFileData guardado:', uploadedFileData);
       document.getElementById('fileUploaded').textContent = '✅ ' + uploadedFileData.fileName;
       document.getElementById('fileUploaded').style.display = 'block';
+    }).fail((error) => {
+      console.error('❌ Error al procesar archivo:', error);
+      alert('Error al subir el archivo. Intenta de nuevo.');
     });
+  }).fail(() => {
+    console.log('⚠️ Usuario canceló la subida');
   });
 };
 
+// UPLOADCARE WIDGET PARA EDITAR - CON DEBUG COMPLETO
 document.getElementById("editUploadBtn").onclick = () => {
+  if (typeof uploadcare === 'undefined') {
+    alert('⚠️ El sistema de subida de archivos no está cargado. Recarga la página.');
+    console.error('❌ Uploadcare no está definido');
+    return;
+  }
+  
+  console.log('🔵 Abriendo diálogo de Uploadcare para editar...');
   uploadcare.openDialog(null, {
     publicKey: UPLOADCARE_PUBLIC_KEY,
     tabs: 'file',
@@ -206,15 +229,22 @@ document.getElementById("editUploadBtn").onclick = () => {
     imagesOnly: false,
     inputAcceptTypes: '.pdf'
   }).done((file) => {
+    console.log('📁 Archivo seleccionado para edición, procesando...');
     file.promise().done((fileInfo) => {
-      console.log('✅ Archivo subido:', fileInfo);
+      console.log('✅ Archivo de edición subido exitosamente:', fileInfo);
       editUploadedFileData = {
         fileName: fileInfo.name,
         fileURL: fileInfo.cdnUrl
       };
+      console.log('💾 Datos de edición guardados en memoria:', editUploadedFileData);
       document.getElementById('editFileUploaded').textContent = '✅ ' + editUploadedFileData.fileName;
       document.getElementById('editFileUploaded').style.display = 'block';
+    }).fail((error) => {
+      console.error('❌ Error al procesar archivo de edición:', error);
+      alert('Error al subir el archivo. Intenta de nuevo.');
     });
+  }).fail(() => {
+    console.log('⚠️ Usuario canceló la subida de edición');
   });
 };
 
@@ -669,12 +699,15 @@ document.getElementById("saveEdit").onclick = async () => {
   }
 };
 
+// BOTÓN AGREGAR CON DEBUG COMPLETO
 document.getElementById("addLine").onclick = async () => {
   const url = document.getElementById("videoURL").value.trim();
   const chords = document.getElementById("chords").value.trim();
   const date = document.getElementById("customDate").value;
 
   if (!date) return alert("Por favor, elige una fecha.");
+
+  console.log('4️⃣ uploadedFileData ANTES de crear songData:', uploadedFileData);
 
   try {
     const songData = {
@@ -687,21 +720,29 @@ document.getElementById("addLine").onclick = async () => {
     if (uploadedFileData) {
       songData.fileName = uploadedFileData.fileName;
       songData.fileURL = uploadedFileData.fileURL;
-      console.log('✅ Guardando PDF:', songData);
+      console.log('5️⃣ PDF agregado a songData:', {
+        fileName: songData.fileName, 
+        fileURL: songData.fileURL
+      });
     } else {
       console.log('⚠️ No hay PDF para guardar');
     }
 
+    console.log('6️⃣ songData COMPLETO antes de guardar en Firebase:', songData);
+
     const docRef = await addDoc(collection(db, "songs"), songData);
-    console.log('✅ Documento guardado con ID:', docRef.id);
+    console.log('7️⃣ Documento guardado en Firebase con ID:', docRef.id);
 
     alert("✅ Canción agregada correctamente.");
+    
     document.getElementById("videoURL").value = "";
     document.getElementById("chords").value = "";
     document.getElementById("customDate").value = "";
     selectedMusicians = {};
     uploadedFileData = null;
     document.getElementById('fileUploaded').style.display = 'none';
+    
+    console.log('8️⃣ Formulario limpiado, uploadedFileData ahora es:', uploadedFileData);
     
     await renderSongs();
   } catch (err) {
