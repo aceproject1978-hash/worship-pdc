@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
+<meta charset="UTF-8">
 <title>Calendario Worship PDC</title>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f9f9fb;color:#333;margin:15px}
 h1{text-align:center;color:#4A90E2;font-weight:700;margin-bottom:10px;text-shadow:1px 1px 2px rgba(74,144,226,0.5)}
@@ -88,93 +87,70 @@ body.overlayLocked{overflow:hidden;height:100vh}
   UPLOADCARE_PUBLIC_KEY = '86a133366056523562';
   UPLOADCARE_LOCALE = 'es';
 </script>
-<!-- ===== Uploadcare con fallback ===== -->
-
-<!-- ===== Fin Uploadcare con fallback ===== -->
-
-<!-- ===== Uploadcare con fallback JSDelivr ===== -->
-<script>
-  window.UPLOADCARE_PUBLIC_KEY = '86a133366056523562';
-  window.UPLOADCARE_LOCALE = 'es';
-
-  (function() {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/uploadcare-widget@3.x/uploadcare.full.min.js';
-    script.async = true;
-    script.onload = () => console.log('✅ Uploadcare cargado desde JSDelivr');
-    script.onerror = () => {
-      console.error('❌ Error al cargar Uploadcare desde JSDelivr');
-      const msg = document.createElement('div');
-      msg.textContent = 'Error al cargar el servicio de Uploadcare. Verifica tu conexión.';
-      msg.style.cssText = 'color:#D9534F;text-align:center;font-weight:600;margin:10px 0;';
-      document.body.prepend(msg);
-      window.uploadcare = {
-        openDialog: () => alert('Uploadcare no está disponible por el momento.')
-      };
-    };
-    document.head.appendChild(script);
-  })();
-</script>
-<!-- ===== Fin Uploadcare con fallback JSDelivr ===== -->
+<script src="https://ucarecdn.com/libs/widget/3.21.3/uploadcare.full.min.js"></script>
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
-<button class="hidden" id="logoutBtn">Cerrar sesión</button>
+<button id="logoutBtn" class="hidden">Cerrar sesión</button>
+
 <div id="accessOverlay">
-<div class="overlay-card">
-<button class="closeOverlay" id="overlayClose">×</button>
-<img alt="Logo PDC" class="logo" src="imagen1.jpg"/>
-<h2>Bienvenido a Worship PDC</h2>
-<div class="choiceBtns" id="loginChoices">
-<button id="visitorChoice" type="button">Entrar como Visitante</button>
-<button id="adminChoice" type="button">Login Admin</button>
+  <div class="overlay-card">
+    <button class="closeOverlay" id="overlayClose">&times;</button>
+    <img src="imagen1.jpg" alt="Logo PDC" class="logo">
+    <h2>Bienvenido a Worship PDC</h2>
+    <div class="choiceBtns" id="loginChoices">
+      <button type="button" id="visitorChoice">Entrar como Visitante</button>
+      <button type="button" id="adminChoice">Login Admin</button>
+    </div>
+    <div id="visitorBox" class="formBox">
+      <input id="visitorPass" type="password" placeholder="Contraseña visitante">
+      <div class="actions">
+        <button type="button" id="visitorSubmit">Entrar</button>
+        <button type="button" id="visitorCancel">Volver</button>
+      </div>
+    </div>
+    <div id="adminBox" class="formBox">
+      <input id="adminUser" type="text" placeholder="Usuario">
+      <input id="adminPass" type="password" placeholder="Contraseña">
+      <div class="actions">
+        <button type="button" id="adminSubmit">Entrar</button>
+        <button type="button" id="adminCancel">Volver</button>
+      </div>
+    </div>
+    <div id="overlayError" class="smallMsg"></div>
+  </div>
 </div>
-<div class="formBox" id="visitorBox">
-<input id="visitorPass" placeholder="Contraseña visitante" type="password"/>
-<div class="actions">
-<button id="visitorSubmit" type="button">Entrar</button>
-<button id="visitorCancel" type="button">Volver</button>
+
+<div id="mainContent" class="hidden">
+  <form id="lineForm" class="hidden">
+    <div class="table-container">
+      <table>
+        <tr>
+          <th>Video YouTube</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th><th>Fecha</th><th>Acción</th>
+        </tr>
+        <tr>
+          <td><div style="display:flex;align-items:center;gap:5px"><input type="url" id="videoURL" placeholder="https://..."><button type="button" id="searchVideoBtn">Buscar</button></div></td>
+          <td>
+            <button type="button" id="uploadBtn" style="width:95%;background:#28a745;padding:8px">📤 Subir PDF</button>
+            <div id="fileUploaded" class="file-uploaded"></div>
+          </td>
+          <td><div style="display:flex;align-items:center;gap:5px;justify-content:center"><input type="text" id="chords" placeholder="G - D - Em"><button type="button" id="toneBtn" class="tone-btn">🎵</button></div></td>
+          <td><button type="button" id="assignBtn" class="assign-green">Asignar músicos</button></td>
+          <td><input type="date" id="customDate"></td>
+          <td><button type="button" id="addLine">Agregar</button></td>
+        </tr>
+      </table>
+    </div>
+  </form>
+  <h2 style="text-align:center;color:#4A90E2">Lista multimedia</h2>
+  <div id="calendarContainer"></div>
 </div>
-</div>
-<div class="formBox" id="adminBox">
-<input id="adminUser" placeholder="Usuario" type="text"/>
-<input id="adminPass" placeholder="Contraseña" type="password"/>
-<div class="actions">
-<button id="adminSubmit" type="button">Entrar</button>
-<button id="adminCancel" type="button">Volver</button>
-</div>
-</div>
-<div class="smallMsg" id="overlayError"></div>
-</div>
-</div>
-<div class="hidden" id="mainContent">
-<form class="hidden" id="lineForm">
-<div class="table-container">
-<table>
-<tr>
-<th>Video YouTube</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th><th>Fecha</th><th>Acción</th>
-</tr>
-<tr>
-<td><div style="display:flex;align-items:center;gap:5px"><input id="videoURL" placeholder="https://..." type="url"/><button id="searchVideoBtn" type="button">Buscar</button></div></td>
-<td>
-<button id="uploadBtn" style="width:95%;background:#28a745;padding:8px" type="button">📤 Subir PDF</button>
-<div class="file-uploaded" id="fileUploaded"></div>
-</td>
-<td><div style="display:flex;align-items:center;gap:5px;justify-content:center"><input id="chords" placeholder="G - D - Em" type="text"/><button class="tone-btn" id="toneBtn" type="button">🎵</button></div></td>
-<td><button class="assign-green" id="assignBtn" type="button">Asignar músicos</button></td>
-<td><input id="customDate" type="date"/></td>
-<td><button id="addLine" type="button">Agregar</button></td>
-</tr>
-</table>
-</div>
-</form>
-<h2 style="text-align:center;color:#4A90E2">Lista multimedia</h2>
-<div id="calendarContainer"></div>
-</div>
-<div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions"></div><div style="text-align:center;margin-top:12px"><button id="closeTone" type="button">Cerrar</button></div></div></div>
-<div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px"><button id="saveAssign" type="button">Guardar</button><button id="closeAssign" type="button">Cerrar</button></div></div></div>
-<div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px"><button id="closeSearch" type="button">Cerrar</button></div></div></div>
-<div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input id="editVideo" type="url"/><label>Cifrado PDF</label><button id="editUploadBtn" style="width:100%;background:#28a745;padding:8px;margin:5px 0" type="button">📤 Cambiar PDF</button><div class="file-uploaded" id="editFileUploaded"></div><label>Tono</label><input id="editChords" type="text"/><div id="editAssignFields"></div><label>Fecha</label><input id="editDate" type="date"/></div><div class="edit-footer"><button id="saveEdit" type="button">Guardar</button><button id="cancelEdit" type="button">Cancelar</button></div></div></div>
+
+<div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions"></div><div style="text-align:center;margin-top:12px"><button type="button" id="closeTone">Cerrar</button></div></div></div>
+<div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px"><button type="button" id="saveAssign">Guardar</button><button type="button" id="closeAssign">Cerrar</button></div></div></div>
+<div id="searchModal"><div id="searchContent"><h3>Buscar Video</h3><div id="videoList"></div><div style="text-align:center;margin-top:10px"><button type="button" id="closeSearch">Cerrar</button></div></div></div>
+<div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input type="url" id="editVideo"><label>Cifrado PDF</label><button type="button" id="editUploadBtn" style="width:100%;background:#28a745;padding:8px;margin:5px 0">📤 Cambiar PDF</button><div id="editFileUploaded" class="file-uploaded"></div><label>Tono</label><input type="text" id="editChords"><div id="editAssignFields"></div><label>Fecha</label><input type="date" id="editDate"></div><div class="edit-footer"><button type="button" id="saveEdit">Guardar</button><button type="button" id="cancelEdit">Cancelar</button></div></div></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -708,7 +684,6 @@ document.getElementById("addLine").onclick = async () => {
   }
 };
 
-// UPLOADCARE WIDGET CON MANEJO COMPLETO
 document.getElementById("uploadBtn").onclick = () => {
   console.log('🔵 Abriendo widget de Uploadcare...');
   uploadcare.openDialog(null, {
