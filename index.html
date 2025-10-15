@@ -83,7 +83,11 @@ body.overlayLocked{overflow:hidden;height:100vh}
   .video-thumb{display:none!important}
 }
 </style>
-<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
+<script>
+  UPLOADCARE_PUBLIC_KEY = '86a133366056523562';
+  UPLOADCARE_LOCALE = 'es';
+</script>
+<script src="https://ucarecdn.com/libs/widget/3.21.3/uploadcare.full.min.js"></script>
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
@@ -164,7 +168,6 @@ const db = getFirestore(app);
 const VISITOR_PASSWORD = "pdc2025*";
 const ADMIN_USER = "ADMINPDC";
 const ADMIN_PASS = "worship1039";
-const UPLOADCARE_PUBLIC_KEY = "86a133366056523562";
 
 let loggedIn = false;
 let visitorLogged = false;
@@ -175,54 +178,6 @@ const accessOverlay = document.getElementById("accessOverlay");
 const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
-
-// UPLOADCARE WIDGET PARA AGREGAR - CON LOGS
-document.getElementById("uploadBtn").onclick = () => {
-  console.log('🔵 Abriendo widget de Uploadcare...');
-  uploadcare.openDialog(null, {
-    publicKey: UPLOADCARE_PUBLIC_KEY,
-    tabs: 'file',
-    multiple: false,
-    imagesOnly: false,
-    inputAcceptTypes: '.pdf'
-  }).done((file) => {
-    console.log('1️⃣ Archivo seleccionado, procesando...');
-    file.promise().done((fileInfo) => {
-      console.log('2️⃣ ✅ Archivo subido:', fileInfo);
-      uploadedFileData = {
-        fileName: fileInfo.name,
-        fileURL: fileInfo.cdnUrl
-      };
-      console.log('3️⃣ uploadedFileData guardado:', uploadedFileData);
-      document.getElementById('fileUploaded').textContent = '✅ ' + uploadedFileData.fileName;
-      document.getElementById('fileUploaded').style.display = 'block';
-    });
-  });
-};
-
-// UPLOADCARE WIDGET PARA EDITAR - CON LOGS
-document.getElementById("editUploadBtn").onclick = () => {
-  console.log('🔵 Abriendo widget para editar...');
-  uploadcare.openDialog(null, {
-    publicKey: UPLOADCARE_PUBLIC_KEY,
-    tabs: 'file',
-    multiple: false,
-    imagesOnly: false,
-    inputAcceptTypes: '.pdf'
-  }).done((file) => {
-    console.log('📁 Archivo seleccionado para edición...');
-    file.promise().done((fileInfo) => {
-      console.log('✅ Archivo de edición subido:', fileInfo);
-      editUploadedFileData = {
-        fileName: fileInfo.name,
-        fileURL: fileInfo.cdnUrl
-      };
-      console.log('💾 editUploadedFileData guardado:', editUploadedFileData);
-      document.getElementById('editFileUploaded').textContent = '✅ ' + editUploadedFileData.fileName;
-      document.getElementById('editFileUploaded').style.display = 'block';
-    });
-  });
-};
 
 function extractYouTubeID(url) {
   if (!url) return null;
@@ -548,7 +503,6 @@ async function addSongToDOM(song, id) {
     }
   }
 
-  // MOSTRAR PDF - CÓDIGO ORIGINAL QUE FUNCIONA
   const tdFile = document.createElement("td");
   const fileURL = song.fileURL || "";
   console.log('🔍 PDF en render:', {fileURL, fileName: song.fileName});
@@ -728,6 +682,83 @@ document.getElementById("addLine").onclick = async () => {
     console.error("❌ Error completo:", err);
     alert("❌ Error: " + (err.message || "falló al guardar"));
   }
+};
+
+// UPLOADCARE WIDGET CON MANEJO COMPLETO
+document.getElementById("uploadBtn").onclick = () => {
+  console.log('🔵 Abriendo widget de Uploadcare...');
+  uploadcare.openDialog(null, {
+    tabs: 'file',
+    multiple: false,
+    imagesOnly: false,
+    inputAcceptTypes: '.pdf'
+  }).done((file) => {
+    console.log('1️⃣ Archivo seleccionado, procesando...', file);
+    
+    file.promise()
+      .done((fileInfo) => {
+        console.log('2️⃣ ✅ Archivo subido EXITOSAMENTE:', fileInfo);
+        uploadedFileData = {
+          fileName: fileInfo.name,
+          fileURL: fileInfo.cdnUrl
+        };
+        console.log('3️⃣ uploadedFileData guardado:', uploadedFileData);
+        document.getElementById('fileUploaded').textContent = '✅ ' + uploadedFileData.fileName;
+        document.getElementById('fileUploaded').style.display = 'block';
+      })
+      .fail((error) => {
+        console.error('❌ ERROR en file.promise():', error);
+        alert('Error al subir el archivo a Uploadcare: ' + error);
+        document.getElementById('fileUploaded').textContent = '❌ Error: ' + error;
+        document.getElementById('fileUploaded').style.display = 'block';
+        document.getElementById('fileUploaded').style.color = '#D9534F';
+      })
+      .progress((progress) => {
+        console.log('📊 Progreso:', Math.round(progress.progress * 100) + '%');
+        document.getElementById('fileUploaded').textContent = '⏳ Subiendo... ' + Math.round(progress.progress * 100) + '%';
+        document.getElementById('fileUploaded').style.display = 'block';
+        document.getElementById('fileUploaded').style.color = '#4A90E2';
+      });
+  }).fail((error) => {
+    console.log('⚠️ Widget cerrado o error:', error);
+  });
+};
+
+document.getElementById("editUploadBtn").onclick = () => {
+  console.log('🔵 Abriendo widget para editar...');
+  uploadcare.openDialog(null, {
+    tabs: 'file',
+    multiple: false,
+    imagesOnly: false,
+    inputAcceptTypes: '.pdf'
+  }).done((file) => {
+    console.log('📁 Archivo seleccionado para edición...');
+    
+    file.promise()
+      .done((fileInfo) => {
+        console.log('✅ Archivo de edición subido:', fileInfo);
+        editUploadedFileData = {
+          fileName: fileInfo.name,
+          fileURL: fileInfo.cdnUrl
+        };
+        console.log('💾 editUploadedFileData guardado:', editUploadedFileData);
+        document.getElementById('editFileUploaded').textContent = '✅ ' + editUploadedFileData.fileName;
+        document.getElementById('editFileUploaded').style.display = 'block';
+      })
+      .fail((error) => {
+        console.error('❌ ERROR en edición:', error);
+        alert('Error al subir el archivo: ' + error);
+        document.getElementById('editFileUploaded').textContent = '❌ Error: ' + error;
+        document.getElementById('editFileUploaded').style.display = 'block';
+        document.getElementById('editFileUploaded').style.color = '#D9534F';
+      })
+      .progress((progress) => {
+        console.log('📊 Progreso edición:', Math.round(progress.progress * 100) + '%');
+        document.getElementById('editFileUploaded').textContent = '⏳ Subiendo... ' + Math.round(progress.progress * 100) + '%';
+        document.getElementById('editFileUploaded').style.display = 'block';
+        document.getElementById('editFileUploaded').style.color = '#4A90E2';
+      });
+  });
 };
 </script>
 </body>
