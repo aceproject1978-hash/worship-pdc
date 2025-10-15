@@ -88,21 +88,22 @@ body.overlayLocked{overflow:hidden;height:100vh}
   UPLOADCARE_PUBLIC_KEY = '86a133366056523562';
   UPLOADCARE_LOCALE = 'es';
 </script>
-
-
 <!-- ===== Uploadcare con fallback ===== -->
+
+<!-- ===== Fin Uploadcare con fallback ===== -->
+
+<!-- ===== Uploadcare con fallback JSDelivr ===== -->
 <script>
   window.UPLOADCARE_PUBLIC_KEY = '86a133366056523562';
   window.UPLOADCARE_LOCALE = 'es';
 
-  // Cargar la librería Uploadcare con verificación y fallback
   (function() {
     const script = document.createElement('script');
-    script.src = 'https://ucarecdn.com/libs/widget/3.21.3/uploadcare.full.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/uploadcare-widget@3.x/uploadcare.full.min.js';
     script.async = true;
-    script.onload = () => console.log('✅ Uploadcare cargado correctamente');
+    script.onload = () => console.log('✅ Uploadcare cargado desde JSDelivr');
     script.onerror = () => {
-      console.error('❌ Error al cargar Uploadcare desde CDN');
+      console.error('❌ Error al cargar Uploadcare desde JSDelivr');
       const msg = document.createElement('div');
       msg.textContent = 'Error al cargar el servicio de Uploadcare. Verifica tu conexión.';
       msg.style.cssText = 'color:#D9534F;text-align:center;font-weight:600;margin:10px 0;';
@@ -114,7 +115,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
     document.head.appendChild(script);
   })();
 </script>
-<!-- ===== Fin Uploadcare con fallback ===== -->
+<!-- ===== Fin Uploadcare con fallback JSDelivr ===== -->
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
