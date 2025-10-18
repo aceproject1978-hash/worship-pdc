@@ -84,10 +84,10 @@ body.overlayLocked{overflow:hidden;height:100vh}
 }
 </style>
 <script>
-  UPLOADCARE_PUBLIC_KEY = '86a133366056523562';
+  UPLOADCARE_PUBLIC_KEY = '30ff0475e669c38ca029';
   UPLOADCARE_LOCALE = 'es';
 </script>
-<script src="https://ucarecdn.com/libs/widget/3.21.3/uploadcare.full.min.js"></script>
+<script src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"></script>
 </head>
 <body class="overlayLocked">
 <h1>Calendario Worship PDC</h1>
@@ -152,6 +152,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
 <div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input type="url" id="editVideo"><label>Cifrado PDF</label><button type="button" id="editUploadBtn" style="width:100%;background:#28a745;padding:8px;margin:5px 0">📤 Cambiar PDF</button><div id="editFileUploaded" class="file-uploaded"></div><label>Tono</label><input type="text" id="editChords"><div id="editAssignFields"></div><label>Fecha</label><input type="date" id="editDate"></div><div class="edit-footer"><button type="button" id="saveEdit">Guardar</button><button type="button" id="cancelEdit">Cancelar</button></div></div></div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -171,8 +172,8 @@ const ADMIN_PASS = "worship1039";
 
 let loggedIn = false;
 let visitorLogged = false;
-let uploadedFileData = null;
-let editUploadedFileData = null;
+window.uploadedFileData = null;
+window.editUploadedFileData = null;
 
 const accessOverlay = document.getElementById("accessOverlay");
 const mainContent = document.getElementById("mainContent");
@@ -438,7 +439,7 @@ document.getElementById("cancelEdit").onclick = () => {
   editModal.style.display = "none";
   currentEditId = null;
   currentEditSong = null;
-  editUploadedFileData = null;
+  window.editUploadedFileData = null;
   document.getElementById('editFileUploaded').style.display = 'none';
 };
 
@@ -447,7 +448,7 @@ editModal.addEventListener('click', (e) => {
     editModal.style.display = 'none';
     currentEditId = null;
     currentEditSong = null;
-    editUploadedFileData = null;
+    window.editUploadedFileData = null;
     document.getElementById('editFileUploaded').style.display = 'none';
   }
 });
@@ -458,7 +459,7 @@ window.addEventListener('keydown', (e) => {
       editModal.style.display = 'none';
       currentEditId = null;
       currentEditSong = null;
-      editUploadedFileData = null;
+      window.editUploadedFileData = null;
       document.getElementById('editFileUploaded').style.display = 'none';
     }
     if (assignModal.style.display === 'flex') assignModal.style.display = 'none';
@@ -494,7 +495,7 @@ async function addSongToDOM(song, id) {
       link.rel = 'noopener';
       const img = document.createElement('img');
       img.src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
-      img.alt = `Thumbnail`;
+      img.alt = 'Thumbnail';
       link.appendChild(img);
       thumb.appendChild(link);
       tdVideo.appendChild(thumb);
@@ -505,7 +506,6 @@ async function addSongToDOM(song, id) {
 
   const tdFile = document.createElement("td");
   const fileURL = song.fileURL || "";
-  console.log('🔍 PDF en render:', {fileURL, fileName: song.fileName});
 
   if (fileURL) {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -550,7 +550,7 @@ async function addSongToDOM(song, id) {
       editVideo.value = song.video || "";
       editChords.value = song.chords || "";
       editDate.value = song.date || "";
-      editUploadedFileData = null;
+      window.editUploadedFileData = null;
       document.getElementById('editFileUploaded').style.display = 'none';
       buildEditAssignFields(song.musicos || {});
       editModal.style.display = "flex";
@@ -578,11 +578,7 @@ async function renderSongs() {
   container.innerHTML = "";
   try {
     const querySnapshot = await getDocs(collection(db, "songs"));
-    querySnapshot.forEach(docSnap => {
-      const songData = docSnap.data();
-      console.log('📋 Canción desde Firebase:', songData);
-      addSongToDOM(songData, docSnap.id);
-    });
+    querySnapshot.forEach(docSnap => addSongToDOM(docSnap.data(), docSnap.id));
   } catch (err) {
     console.error(err);
     container.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
@@ -614,9 +610,9 @@ document.getElementById("saveEdit").onclick = async () => {
     if (Object.keys(newMusicos).length > 0) updates.musicos = newMusicos;
     else if (currentEditSong?.musicos) updates.musicos = currentEditSong.musicos;
 
-    if (editUploadedFileData) {
-      updates.fileURL = editUploadedFileData.fileURL;
-      updates.fileName = editUploadedFileData.fileName;
+    if (window.editUploadedFileData) {
+      updates.fileURL = window.editUploadedFileData.fileURL;
+      updates.fileName = window.editUploadedFileData.fileName;
     } else {
       if (currentEditSong?.fileURL) {
         updates.fileURL = currentEditSong.fileURL;
@@ -629,7 +625,7 @@ document.getElementById("saveEdit").onclick = async () => {
     editModal.style.display = "none";
     currentEditId = null;
     currentEditSong = null;
-    editUploadedFileData = null;
+    window.editUploadedFileData = null;
     document.getElementById('editFileUploaded').style.display = 'none';
     renderSongs();
   } catch (err) {
@@ -645,7 +641,7 @@ document.getElementById("addLine").onclick = async () => {
 
   if (!date) return alert("Por favor, elige una fecha.");
 
-  console.log('4️⃣ uploadedFileData ANTES de guardar:', uploadedFileData);
+  console.log('uploadedFileData antes de guardar:', window.uploadedFileData);
 
   try {
     const songData = {
@@ -655,110 +651,135 @@ document.getElementById("addLine").onclick = async () => {
       musicos: selectedMusicians
     };
 
-    if (uploadedFileData) {
-      songData.fileName = uploadedFileData.fileName;
-      songData.fileURL = uploadedFileData.fileURL;
-      console.log('5️⃣ ✅ PDF agregado a songData:', songData);
-    } else {
-      console.log('⚠️ No hay PDF para guardar');
+    if (window.uploadedFileData) {
+      songData.fileName = window.uploadedFileData.fileName;
+      songData.fileURL = window.uploadedFileData.fileURL;
+      console.log('PDF agregado a songData:', songData);
     }
 
-    console.log('6️⃣ songData COMPLETO:', songData);
-
     const docRef = await addDoc(collection(db, "songs"), songData);
-    console.log('7️⃣ ✅ Guardado en Firebase con ID:', docRef.id);
+    console.log('Guardado en Firebase con ID:', docRef.id);
 
     alert("✅ Canción agregada correctamente.");
     document.getElementById("videoURL").value = "";
     document.getElementById("chords").value = "";
     document.getElementById("customDate").value = "";
     selectedMusicians = {};
-    uploadedFileData = null;
+    window.uploadedFileData = null;
     document.getElementById('fileUploaded').style.display = 'none';
     
-    console.log('8️⃣ Formulario limpiado');
     renderSongs();
   } catch (err) {
-    console.error("❌ Error completo:", err);
+    console.error("Error completo:", err);
     alert("❌ Error: " + (err.message || "falló al guardar"));
   }
 };
+</script>
 
-document.getElementById("uploadBtn").onclick = () => {
-  console.log('🔵 Abriendo widget de Uploadcare...');
-  uploadcare.openDialog(null, {
-    tabs: 'file',
-    multiple: false,
-    imagesOnly: false,
-    inputAcceptTypes: '.pdf'
-  }).done((file) => {
-    console.log('1️⃣ Archivo seleccionado, procesando...', file);
-    
-    file.promise()
-      .done((fileInfo) => {
-        console.log('2️⃣ ✅ Archivo subido EXITOSAMENTE:', fileInfo);
-        uploadedFileData = {
-          fileName: fileInfo.name,
-          fileURL: fileInfo.cdnUrl
-        };
-        console.log('3️⃣ uploadedFileData guardado:', uploadedFileData);
-        document.getElementById('fileUploaded').textContent = '✅ ' + uploadedFileData.fileName;
-        document.getElementById('fileUploaded').style.display = 'block';
-      })
-      .fail((error) => {
-        console.error('❌ ERROR en file.promise():', error);
-        alert('Error al subir el archivo a Uploadcare: ' + error);
-        document.getElementById('fileUploaded').textContent = '❌ Error: ' + error;
-        document.getElementById('fileUploaded').style.display = 'block';
-        document.getElementById('fileUploaded').style.color = '#D9534F';
-      })
-      .progress((progress) => {
-        console.log('📊 Progreso:', Math.round(progress.progress * 100) + '%');
-        document.getElementById('fileUploaded').textContent = '⏳ Subiendo... ' + Math.round(progress.progress * 100) + '%';
-        document.getElementById('fileUploaded').style.display = 'block';
-        document.getElementById('fileUploaded').style.color = '#4A90E2';
-      });
-  }).fail((error) => {
-    console.log('⚠️ Widget cerrado o error:', error);
-  });
-};
+<script>
+let uploadcareAttempts = 0;
+const MAX_ATTEMPTS = 300;
 
-document.getElementById("editUploadBtn").onclick = () => {
-  console.log('🔵 Abriendo widget para editar...');
-  uploadcare.openDialog(null, {
-    tabs: 'file',
-    multiple: false,
-    imagesOnly: false,
-    inputAcceptTypes: '.pdf'
-  }).done((file) => {
-    console.log('📁 Archivo seleccionado para edición...');
-    
-    file.promise()
-      .done((fileInfo) => {
-        console.log('✅ Archivo de edición subido:', fileInfo);
-        editUploadedFileData = {
-          fileName: fileInfo.name,
-          fileURL: fileInfo.cdnUrl
-        };
-        console.log('💾 editUploadedFileData guardado:', editUploadedFileData);
-        document.getElementById('editFileUploaded').textContent = '✅ ' + editUploadedFileData.fileName;
-        document.getElementById('editFileUploaded').style.display = 'block';
-      })
-      .fail((error) => {
-        console.error('❌ ERROR en edición:', error);
-        alert('Error al subir el archivo: ' + error);
-        document.getElementById('editFileUploaded').textContent = '❌ Error: ' + error;
-        document.getElementById('editFileUploaded').style.display = 'block';
-        document.getElementById('editFileUploaded').style.color = '#D9534F';
-      })
-      .progress((progress) => {
-        console.log('📊 Progreso edición:', Math.round(progress.progress * 100) + '%');
-        document.getElementById('editFileUploaded').textContent = '⏳ Subiendo... ' + Math.round(progress.progress * 100) + '%';
-        document.getElementById('editFileUploaded').style.display = 'block';
-        document.getElementById('editFileUploaded').style.color = '#4A90E2';
-      });
-  });
-};
+function initUploadcare() {
+  uploadcareAttempts++;
+  
+  if (typeof uploadcare === 'undefined') {
+    if (uploadcareAttempts < MAX_ATTEMPTS) {
+      console.log(`Esperando Uploadcare... Intento ${uploadcareAttempts}/${MAX_ATTEMPTS}`);
+      setTimeout(initUploadcare, 100);
+    } else {
+      console.error('❌ ERROR: Uploadcare no se cargó después de 30 segundos');
+      alert('Error: No se pudo cargar el sistema de archivos. Por favor recarga la página.');
+    }
+    return;
+  }
+  
+  console.log('✅ Uploadcare cargado correctamente');
+  
+  document.getElementById("uploadBtn").onclick = () => {
+    console.log('Abriendo widget de Uploadcare...');
+    uploadcare.openDialog(null, {
+      tabs: 'file',
+      multiple: false,
+      imagesOnly: false,
+      inputAcceptTypes: '.pdf'
+    }).done((file) => {
+      console.log('Archivo seleccionado, procesando...', file);
+      
+      file.promise()
+        .done((fileInfo) => {
+          console.log('✅ Archivo subido:', fileInfo);
+          window.uploadedFileData = {
+            fileName: fileInfo.name,
+            fileURL: fileInfo.cdnUrl
+          };
+          console.log('uploadedFileData guardado:', window.uploadedFileData);
+          document.getElementById('fileUploaded').textContent = '✅ ' + window.uploadedFileData.fileName;
+          document.getElementById('fileUploaded').style.display = 'block';
+          document.getElementById('fileUploaded').style.color = '#28a745';
+        })
+        .fail((error) => {
+          console.error('❌ ERROR:', error);
+          alert('Error al subir el archivo: ' + error);
+          document.getElementById('fileUploaded').textContent = '❌ Error: ' + error;
+          document.getElementById('fileUploaded').style.display = 'block';
+          document.getElementById('fileUploaded').style.color = '#D9534F';
+        })
+        .progress((progress) => {
+          console.log('Progreso:', Math.round(progress.progress * 100) + '%');
+          document.getElementById('fileUploaded').textContent = '⏳ Subiendo... ' + Math.round(progress.progress * 100) + '%';
+          document.getElementById('fileUploaded').style.display = 'block';
+          document.getElementById('fileUploaded').style.color = '#4A90E2';
+        });
+    }).fail((error) => {
+      console.log('Widget cerrado o error:', error);
+    });
+  };
+
+  document.getElementById("editUploadBtn").onclick = () => {
+    console.log('Abriendo widget para editar...');
+    uploadcare.openDialog(null, {
+      tabs: 'file',
+      multiple: false,
+      imagesOnly: false,
+      inputAcceptTypes: '.pdf'
+    }).done((file) => {
+      console.log('Archivo seleccionado para edición...');
+      
+      file.promise()
+        .done((fileInfo) => {
+          console.log('✅ Archivo de edición subido:', fileInfo);
+          window.editUploadedFileData = {
+            fileName: fileInfo.name,
+            fileURL: fileInfo.cdnUrl
+          };
+          console.log('editUploadedFileData guardado:', window.editUploadedFileData);
+          document.getElementById('editFileUploaded').textContent = '✅ ' + window.editUploadedFileData.fileName;
+          document.getElementById('editFileUploaded').style.display = 'block';
+          document.getElementById('editFileUploaded').style.color = '#28a745';
+        })
+        .fail((error) => {
+          console.error('❌ ERROR en edición:', error);
+          alert('Error al subir el archivo: ' + error);
+          document.getElementById('editFileUploaded').textContent = '❌ Error: ' + error;
+          document.getElementById('editFileUploaded').style.display = 'block';
+          document.getElementById('editFileUploaded').style.color = '#D9534F';
+        })
+        .progress((progress) => {
+          console.log('Progreso edición:', Math.round(progress.progress * 100) + '%');
+          document.getElementById('editFileUploaded').textContent = '⏳ Subiendo... ' + Math.round(progress.progress * 100) + '%';
+          document.getElementById('editFileUploaded').style.display = 'block';
+          document.getElementById('editFileUploaded').style.color = '#4A90E2';
+        });
+    });
+  };
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initUploadcare);
+} else {
+  initUploadcare();
+}
 </script>
 </body>
 </html>
