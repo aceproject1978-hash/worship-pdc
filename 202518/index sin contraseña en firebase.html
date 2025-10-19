@@ -191,7 +191,6 @@ body.overlayLocked{overflow:hidden;height:100vh}
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const app = initializeApp({
@@ -202,17 +201,14 @@ const app = initializeApp({
   messagingSenderId: "132891019857",
   appId: "1:132891019857:web:3d72cfe959a8d14cdf4670"
 });
-
 const db = getFirestore(app);
-const auth = getAuth(app);
 
-// Emails para autenticación (sin contraseñas en el código)
-const ADMIN_EMAIL = "adminpdc@worship.com";
-const VISITOR_EMAIL = "visitante@worship.com";
+const VISITOR_PASSWORD = "pdc2025*";
+const ADMIN_USER = "ADMINPDC";
+const ADMIN_PASS = "worship1039";
 
 let loggedIn = false;
 let visitorLogged = false;
-let currentUser = null;
 window.uploadedFileData = null;
 window.editUploadedFileData = null;
 let allSongs = [];
@@ -256,6 +252,7 @@ function enterAsVisitor() {
   logoutBtn.classList.remove("hidden");
   clearListBtn.classList.add("hidden");
   renderSongs();
+  localStorage.setItem("worship_role", "visitor");
 }
 
 function enterAsAdmin() {
@@ -267,26 +264,15 @@ function enterAsAdmin() {
   logoutBtn.classList.remove("hidden");
   clearListBtn.classList.remove("hidden");
   renderSongs();
+  localStorage.setItem("worship_role", "admin");
 }
 
-// Escuchar cambios de autenticación
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = user;
-    if (user.email === ADMIN_EMAIL) {
-      enterAsAdmin();
-    } else if (user.email === VISITOR_EMAIL) {
-      enterAsVisitor();
-    }
-  } else {
-    currentUser = null;
-    loggedIn = false;
-    visitorLogged = false;
-    if (!accessOverlay.style.display || accessOverlay.style.display === "none") {
-      showOverlay();
-    }
-  }
-});
+function restoreSession() {
+  const role = localStorage.getItem("worship_role");
+  if (role === "admin") enterAsAdmin();
+  else if (role === "visitor") enterAsVisitor();
+  else showOverlay();
+}
 
 document.getElementById("visitorChoice").onclick = () => {
   document.getElementById("loginChoices").style.display = "none";
@@ -301,93 +287,49 @@ document.getElementById("adminChoice").onclick = () => {
 document.getElementById("visitorCancel").onclick = () => {
   document.getElementById("visitorBox").style.display = "none";
   document.getElementById("loginChoices").style.display = "flex";
-  document.getElementById("visitorPass").value = "";
 };
 
 document.getElementById("adminCancel").onclick = () => {
   document.getElementById("adminBox").style.display = "none";
   document.getElementById("loginChoices").style.display = "flex";
-  document.getElementById("adminUser").value = "";
-  document.getElementById("adminPass").value = "";
 };
 
 document.getElementById("overlayClose").onclick = () => {
   document.getElementById("visitorBox").style.display = "none";
   document.getElementById("adminBox").style.display = "none";
   document.getElementById("loginChoices").style.display = "flex";
-  document.getElementById("visitorPass").value = "";
-  document.getElementById("adminUser").value = "";
-  document.getElementById("adminPass").value = "";
 };
 
-// Login Visitante con Firebase
-document.getElementById("visitorSubmit").onclick = async () => {
+document.getElementById("visitorSubmit").onclick = () => {
   const pass = document.getElementById("visitorPass").value.trim();
   if (!pass) {
     document.getElementById("overlayError").textContent = "Ingresa la contraseña de visitante.";
     return;
   }
-  
-  try {
-    document.getElementById("overlayError").textContent = "Autenticando...";
-    await signInWithEmailAndPassword(auth, VISITOR_EMAIL, pass);
-    // onAuthStateChanged se encargará del resto
-  } catch (error) {
-    console.error("Error login visitante:", error);
-    if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-      document.getElementById("overlayError").textContent = "Contraseña incorrecta.";
-    } else {
-      document.getElementById("overlayError").textContent = "Error al iniciar sesión.";
-    }
-  }
+  if (pass === VISITOR_PASSWORD) enterAsVisitor();
+  else document.getElementById("overlayError").textContent = "Contraseña incorrecta.";
 };
 
-// Login Admin con Firebase
-document.getElementById("adminSubmit").onclick = async () => {
+document.getElementById("adminSubmit").onclick = () => {
   const user = document.getElementById("adminUser").value.trim();
   const pass = document.getElementById("adminPass").value.trim();
-  
   if (!user || !pass) {
     document.getElementById("overlayError").textContent = "Ingresa usuario y contraseña.";
     return;
   }
-  
-  // Verificar que el usuario sea ADMINPDC
-  if (user.toUpperCase() !== "ADMINPDC") {
-    document.getElementById("overlayError").textContent = "Usuario incorrecto.";
-    return;
-  }
-  
-  try {
-    document.getElementById("overlayError").textContent = "Autenticando...";
-    await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
-    // onAuthStateChanged se encargará del resto
-  } catch (error) {
-    console.error("Error login admin:", error);
-    if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-      document.getElementById("overlayError").textContent = "Credenciales incorrectas.";
-    } else {
-      document.getElementById("overlayError").textContent = "Error al iniciar sesión.";
-    }
-  }
+  if (user === ADMIN_USER && pass === ADMIN_PASS) enterAsAdmin();
+  else document.getElementById("overlayError").textContent = "Credenciales incorrectas.";
 };
 
-// Cerrar sesión
-logoutBtn.onclick = async () => {
-  try {
-    await signOut(auth);
-    loggedIn = false;
-    visitorLogged = false;
-    currentUser = null;
-    mainContent.classList.add("hidden");
-    lineForm.classList.add("hidden");
-    logoutBtn.classList.add("hidden");
-    clearListBtn.classList.add("hidden");
-    showOverlay();
-  } catch (error) {
-    console.error("Error al cerrar sesión:", error);
-    alert("Error al cerrar sesión");
-  }
+logoutBtn.onclick = () => {
+  loggedIn = false;
+  visitorLogged = false;
+  localStorage.removeItem("worship_role");
+  mainContent.classList.add("hidden");
+  lineForm.classList.add("hidden");
+  logoutBtn.classList.add("hidden");
+  clearListBtn.classList.add("hidden");
+  showOverlay();
 };
 
 clearListBtn.onclick = () => {
@@ -397,6 +339,8 @@ clearListBtn.onclick = () => {
   }
 };
 
+restoreSession();
+
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
 const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
 let selectedMusicians = {};
@@ -404,7 +348,6 @@ let selectedMusicians = {};
 const assignBtn = document.getElementById("assignBtn");
 const assignModal = document.getElementById("assignModal");
 const assignFields = document.getElementById("assignFields");
-// CONTINUACIÓN DEL SCRIPT - Pegar después de la línea: const assignFields = document.getElementById("assignFields");
 
 function openAssignModal() {
   assignFields.innerHTML = "";
@@ -490,8 +433,7 @@ function displayFilteredSongs(songs) {
   videoList.innerHTML = "";
   if (songs.length === 0) {
     videoList.innerHTML = "<p style='text-align:center;color:#666;padding:20px;'>No se encontraron canciones.</p>";
-    return;
-  }
+    return;}
   
   songs.forEach(item => {
     const song = item.data;
