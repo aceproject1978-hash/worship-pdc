@@ -34,13 +34,13 @@ a:hover{text-decoration:underline}
 #logoutBtn{position:absolute;top:15px;right:25px}
 #assignModal,#searchModal,#toneModal,#editModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:10010;padding:20px;box-sizing:border-box}
 #assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;z-index:10020}
-#assignContent{width:320px;max-height:80vh;overflow-y:auto}
+#assignContent{width:280px;max-height:80vh;overflow-y:auto}
 #searchContent{width:600px;max-height:80vh;overflow-y:auto}
 #toneContent{width:500px;max-height:500px;overflow-y:auto}
 #editContent{width:420px;max-width:100%;max-height:85vh;display:flex;flex-direction:column;gap:8px;padding:12px 14px}
 #assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px}
 .assign-item{margin:6px 0;display:flex;flex-direction:column}
-.assign-item label{font-weight:bold;margin-bottom:3px;font-size:0.85em}
+.assign-item label{font-weight:bold;margin-bottom:3px}
 .assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;width:100%;box-sizing:border-box}
 td:nth-child(5){white-space:pre-line;text-align:left;font-size:0.9em}
 .video-result{display:flex;align-items:flex-start;gap:15px;border-bottom:1px solid #ddd;padding:15px 10px;transition:background 0.2s;background:#fff}
@@ -93,9 +93,8 @@ body.overlayLocked{overflow:hidden;height:100vh}
 #clearListBtn:hover{background-color:#c9302c;box-shadow:0 4px 12px rgba(217,83,79,0.4)}
 #accessOverlay.fadeOut{animation:fadeOut 1.4s ease forwards}
 @keyframes fadeOut{from{opacity:1}to{opacity:0;visibility:hidden}}
-.same-musicians-btn{width:100%;background:#FF9800;color:white;margin:12px 0 12px 0;padding:10px;border-radius:5px;cursor:pointer;font-weight:600;border:none;transition:background-color 0.3s;font-size:0.9em}
+.same-musicians-btn{width:100%;background:#FF9800;color:white;margin:12px 0 8px 0;padding:8px;border-radius:5px;cursor:pointer;font-weight:600;border:none;transition:background-color 0.3s}
 .same-musicians-btn:hover{background-color:#E68900}
-#assignFieldsContainer{max-height:35vh;overflow-y:auto;margin-bottom:10px;padding-right:5px}
 @media (max-width:520px){
   table{min-width:700px;table-layout:auto}
   th,td{padding:8px;border:1px solid #ddd;font-size:0.92em}
@@ -179,7 +178,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
 </div>
 
 <div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions" class="tone-grid"></div><div style="text-align:center;margin-top:12px"><button type="button" id="closeTone">Cerrar</button></div></div></div>
-<div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFieldsContainer"><div id="assignFields"></div></div><button type="button" id="sameMusicianBtn" class="same-musicians-btn" style="display:none;">👥 Mismos Músicos</button><div style="text-align:center;margin-top:10px"><button type="button" id="saveAssign">Guardar</button><button type="button" id="closeAssign">Cerrar</button></div></div></div>
+<div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><button type="button" id="sameMusicianBtn" class="same-musicians-btn" style="display:none;">👥 Mismos Músicos</button><div style="text-align:center;margin-top:10px"><button type="button" id="saveAssign">Guardar</button><button type="button" id="closeAssign">Cerrar</button></div></div></div>
 <div id="searchModal">
   <div id="searchContent">
     <h3>Buscar Video</h3>
@@ -227,8 +226,6 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 const clearListBtn = document.getElementById("clearListBtn");
-  // asegurar que el botón esté oculto por defecto
-  clearListBtn.style.display = "none";
 
 function extractYouTubeID(url) {
   if (!url) return null;
@@ -261,7 +258,7 @@ function enterAsVisitor() {
   mainContent.classList.remove("hidden");
   lineForm.classList.add("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.style.display = "none";
+  clearListBtn.classList.add("hidden");
   renderSongs();
 }
 
@@ -272,7 +269,7 @@ function enterAsAdmin() {
   mainContent.classList.remove("hidden");
   lineForm.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.style.display = "block";
+  clearListBtn.classList.remove("hidden");
   renderSongs();
 }
 
@@ -382,7 +379,7 @@ logoutBtn.onclick = async () => {
     mainContent.classList.add("hidden");
     lineForm.classList.add("hidden");
     logoutBtn.classList.add("hidden");
-    clearListBtn.style.display = "none";
+    clearListBtn.classList.add("hidden");
     showOverlay();
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
@@ -493,7 +490,6 @@ sameMusicianBtn.onclick = () => {
     if (sel) {
       sel.disabled = true;
       sel.style.opacity = "0.6";
-      sel.style.cursor = "not-allowed";
     }
   });
   
@@ -508,7 +504,6 @@ document.getElementById("closeAssign").onclick = () => {
     if (sel) {
       sel.disabled = false;
       sel.style.opacity = "1";
-      sel.style.cursor = "pointer";
     }
   });
 };
@@ -540,7 +535,6 @@ document.getElementById("saveAssign").onclick = () => {
     if (sel) {
       sel.disabled = false;
       sel.style.opacity = "1";
-      sel.style.cursor = "pointer";
     }
   });
   

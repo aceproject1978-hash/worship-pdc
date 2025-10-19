@@ -34,14 +34,14 @@ a:hover{text-decoration:underline}
 #logoutBtn{position:absolute;top:15px;right:25px}
 #assignModal,#searchModal,#toneModal,#editModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:10010;padding:20px;box-sizing:border-box}
 #assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;z-index:10020}
-#assignContent{width:320px;max-height:80vh;overflow-y:auto}
+#assignContent{width:280px}
 #searchContent{width:600px;max-height:80vh;overflow-y:auto}
-#toneContent{width:500px;max-height:500px;overflow-y:auto}
+#toneContent{width:300px}
 #editContent{width:420px;max-width:100%;max-height:85vh;display:flex;flex-direction:column;gap:8px;padding:12px 14px}
 #assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px}
 .assign-item{margin:6px 0;display:flex;flex-direction:column}
-.assign-item label{font-weight:bold;margin-bottom:3px;font-size:0.85em}
-.assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;width:100%;box-sizing:border-box}
+.assign-item label{font-weight:bold;margin-bottom:3px}
+.assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em}
 td:nth-child(5){white-space:pre-line;text-align:left;font-size:0.9em}
 .video-result{display:flex;align-items:flex-start;gap:15px;border-bottom:1px solid #ddd;padding:15px 10px;transition:background 0.2s;background:#fff}
 .video-result:hover{background:#f8f9fa}
@@ -52,9 +52,8 @@ td:nth-child(5){white-space:pre-line;text-align:left;font-size:0.9em}
 .video-result .info .link{color:#666;font-size:0.8em;word-break:break-all;margin:0;line-height:1.4}
 .video-result button{background:#28a745;padding:8px 20px;font-size:0.85em;flex-shrink:0;border-radius:6px;font-weight:600;align-self:flex-start}
 .tone-btn{margin-left:4px;padding:4px 7px;font-size:0.9em;border-radius:6px;background:#4A90E2;color:#fff;cursor:pointer;border:none}
-.tone-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
-.tone-option{display:flex;align-items:center;justify-content:center;padding:10px;background:#f0f0f0;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.9em;transition:all 0.2s}
-.tone-option:hover{background:#4A90E2;color:#fff;transform:scale(1.05)}
+.tone-option{display:inline-block;margin:6px 6px;padding:6px 10px;background:#f0f0f0;border-radius:5px;cursor:pointer}
+.tone-option:hover{background:#4A90E2;color:#fff}
 .edit-body{overflow:auto;padding-right:6px}
 .edit-footer{display:flex;gap:10px;justify-content:center;align-items:center;padding-top:8px;border-top:1px solid #eee;margin-top:6px;background:transparent;flex-shrink:0}
 .edit-footer button{min-width:120px}
@@ -93,9 +92,6 @@ body.overlayLocked{overflow:hidden;height:100vh}
 #clearListBtn:hover{background-color:#c9302c;box-shadow:0 4px 12px rgba(217,83,79,0.4)}
 #accessOverlay.fadeOut{animation:fadeOut 1.4s ease forwards}
 @keyframes fadeOut{from{opacity:1}to{opacity:0;visibility:hidden}}
-.same-musicians-btn{width:100%;background:#FF9800;color:white;margin:12px 0 12px 0;padding:10px;border-radius:5px;cursor:pointer;font-weight:600;border:none;transition:background-color 0.3s;font-size:0.9em}
-.same-musicians-btn:hover{background-color:#E68900}
-#assignFieldsContainer{max-height:35vh;overflow-y:auto;margin-bottom:10px;padding-right:5px}
 @media (max-width:520px){
   table{min-width:700px;table-layout:auto}
   th,td{padding:8px;border:1px solid #ddd;font-size:0.92em}
@@ -103,8 +99,6 @@ body.overlayLocked{overflow:hidden;height:100vh}
   .overlay-card{padding:18px;width:90%;max-width:520px}
   body.overlayLocked h1{margin-top:48px}
   #footer,#loginFooter{font-size:0.75em;padding:10px 5px}
-  .tone-grid{grid-template-columns:repeat(3,1fr);gap:6px}
-  #logoutBtn{top:75px!important;right:15px!important;padding:8px 12px;font-size:0.8em;z-index:500}
 }
 @media (min-width:521px){
   .video-thumb{display:none!important}
@@ -178,8 +172,8 @@ body.overlayLocked{overflow:hidden;height:100vh}
   <button id="clearListBtn" class="hidden">🗑️ Limpiar Lista</button>
 </div>
 
-<div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions" class="tone-grid"></div><div style="text-align:center;margin-top:12px"><button type="button" id="closeTone">Cerrar</button></div></div></div>
-<div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFieldsContainer"><div id="assignFields"></div></div><button type="button" id="sameMusicianBtn" class="same-musicians-btn" style="display:none;">👥 Mismos Músicos</button><div style="text-align:center;margin-top:10px"><button type="button" id="saveAssign">Guardar</button><button type="button" id="closeAssign">Cerrar</button></div></div></div>
+<div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions"></div><div style="text-align:center;margin-top:12px"><button type="button" id="closeTone">Cerrar</button></div></div></div>
+<div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFields"></div><div style="text-align:center;margin-top:10px"><button type="button" id="saveAssign">Guardar</button><button type="button" id="closeAssign">Cerrar</button></div></div></div>
 <div id="searchModal">
   <div id="searchContent">
     <h3>Buscar Video</h3>
@@ -212,6 +206,7 @@ const app = initializeApp({
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Emails para autenticación (sin contraseñas en el código)
 const ADMIN_EMAIL = "adminpdc@worship.com";
 const VISITOR_EMAIL = "visitante@worship.com";
 
@@ -227,8 +222,6 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 const clearListBtn = document.getElementById("clearListBtn");
-  // asegurar que el botón esté oculto por defecto
-  clearListBtn.style.display = "none";
 
 function extractYouTubeID(url) {
   if (!url) return null;
@@ -261,7 +254,7 @@ function enterAsVisitor() {
   mainContent.classList.remove("hidden");
   lineForm.classList.add("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.style.display = "none";
+  clearListBtn.classList.add("hidden");
   renderSongs();
 }
 
@@ -272,10 +265,11 @@ function enterAsAdmin() {
   mainContent.classList.remove("hidden");
   lineForm.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.style.display = "block";
+  clearListBtn.classList.remove("hidden");
   renderSongs();
 }
 
+// Escuchar cambios de autenticación
 onAuthStateChanged(auth, (user) => {
   if (user) {
     currentUser = user;
@@ -326,6 +320,7 @@ document.getElementById("overlayClose").onclick = () => {
   document.getElementById("adminPass").value = "";
 };
 
+// Login Visitante con Firebase
 document.getElementById("visitorSubmit").onclick = async () => {
   const pass = document.getElementById("visitorPass").value.trim();
   if (!pass) {
@@ -336,6 +331,7 @@ document.getElementById("visitorSubmit").onclick = async () => {
   try {
     document.getElementById("overlayError").textContent = "Autenticando...";
     await signInWithEmailAndPassword(auth, VISITOR_EMAIL, pass);
+    // onAuthStateChanged se encargará del resto
   } catch (error) {
     console.error("Error login visitante:", error);
     if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
@@ -346,6 +342,7 @@ document.getElementById("visitorSubmit").onclick = async () => {
   }
 };
 
+// Login Admin con Firebase
 document.getElementById("adminSubmit").onclick = async () => {
   const user = document.getElementById("adminUser").value.trim();
   const pass = document.getElementById("adminPass").value.trim();
@@ -355,6 +352,7 @@ document.getElementById("adminSubmit").onclick = async () => {
     return;
   }
   
+  // Verificar que el usuario sea ADMINPDC
   if (user.toUpperCase() !== "ADMINPDC") {
     document.getElementById("overlayError").textContent = "Usuario incorrecto.";
     return;
@@ -363,6 +361,7 @@ document.getElementById("adminSubmit").onclick = async () => {
   try {
     document.getElementById("overlayError").textContent = "Autenticando...";
     await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pass);
+    // onAuthStateChanged se encargará del resto
   } catch (error) {
     console.error("Error login admin:", error);
     if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
@@ -373,6 +372,7 @@ document.getElementById("adminSubmit").onclick = async () => {
   }
 };
 
+// Cerrar sesión
 logoutBtn.onclick = async () => {
   try {
     await signOut(auth);
@@ -382,7 +382,7 @@ logoutBtn.onclick = async () => {
     mainContent.classList.add("hidden");
     lineForm.classList.add("hidden");
     logoutBtn.classList.add("hidden");
-    clearListBtn.style.display = "none";
+    clearListBtn.classList.add("hidden");
     showOverlay();
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
@@ -391,64 +391,20 @@ logoutBtn.onclick = async () => {
 };
 
 clearListBtn.onclick = () => {
-  const confirmModal = document.createElement("div");
-  confirmModal.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:20000;";
-  
-  const confirmCard = document.createElement("div");
-  confirmCard.style.cssText = "background:#fff;padding:25px;border-radius:10px;box-shadow:0 0 20px rgba(0,0,0,0.3);text-align:center;max-width:350px;width:90%;";
-  
-  const title = document.createElement("h3");
-  title.textContent = "Confirmación";
-  title.style.cssText = "color:#4A90E2;margin-bottom:15px;font-size:1.1em;margin-top:0;";
-  
-  const message = document.createElement("p");
-  message.textContent = "¿Confirmas que deseas Eliminar la Lista multimedia?";
-  message.style.cssText = "color:#333;margin-bottom:20px;font-size:0.95em;line-height:1.5;";
-  
-  const btnContainer = document.createElement("div");
-  btnContainer.style.cssText = "display:flex;gap:10px;justify-content:center;flex-wrap:wrap;";
-  
-  const btnSi = document.createElement("button");
-  btnSi.textContent = "Sí";
-  btnSi.style.cssText = "background:#28a745;color:#fff;padding:10px 25px;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.9em;transition:background 0.3s;";
-  btnSi.onmouseover = () => btnSi.style.background = "#218838";
-  btnSi.onmouseout = () => btnSi.style.background = "#28a745";
-  btnSi.onclick = () => {
+  if (confirm("¿Estás seguro de limpiar toda la lista de la pantalla? (Los datos en Firebase no se eliminarán)")) {
     document.getElementById("calendarContainer").innerHTML = "";
-    document.body.removeChild(confirmModal);
-    alert("✅ Lista multimedia eliminada.");
-  };
-  
-  const btnNo = document.createElement("button");
-  btnNo.textContent = "No";
-  btnNo.style.cssText = "background:#D9534F;color:#fff;padding:10px 25px;border:none;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.9em;transition:background 0.3s;";
-  btnNo.onmouseover = () => btnNo.style.background = "#c9302c";
-  btnNo.onmouseout = () => btnNo.style.background = "#D9534F";
-  btnNo.onclick = () => {
-    document.body.removeChild(confirmModal);
-  };
-  
-  btnContainer.appendChild(btnSi);
-  btnContainer.appendChild(btnNo);
-  
-  confirmCard.appendChild(title);
-  confirmCard.appendChild(message);
-  confirmCard.appendChild(btnContainer);
-  
-  confirmModal.appendChild(confirmCard);
-  document.body.appendChild(confirmModal);
+    alert("✅ Lista limpiada. Los datos siguen guardados en Firebase.");
+  }
 };
 
 const instruments = ["BATERIA","PIANO","GUITARRA ACUSTICA","GUITARRA ELECTRICA","VOZ 1","VOZ 2","VOZ 3","VOZ LIDER","BAJO"];
 const names = ["Rafael","Moises","Ronald","Nelson","Josue","Sebastian","Jose","Nayuris","Gabriela","Daniela","Carolina","Adriana"];
 let selectedMusicians = {};
-let lastDateMusicians = {};
-let usingSameMusicians = false;
 
 const assignBtn = document.getElementById("assignBtn");
 const assignModal = document.getElementById("assignModal");
 const assignFields = document.getElementById("assignFields");
-const sameMusicianBtn = document.getElementById("sameMusicianBtn");
+// CONTINUACIÓN DEL SCRIPT - Pegar después de la línea: const assignFields = document.getElementById("assignFields");
 
 function openAssignModal() {
   assignFields.innerHTML = "";
@@ -458,18 +414,10 @@ function openAssignModal() {
     div.innerHTML = `<label>${instr}:</label>
       <select id="sel-${instr.replace(/\s+/g,'_')}">
         <option value="">-- Seleccionar --</option>
-        ${names.map(n=>`<option value="${n}" ${selectedMusicians[instr] && selectedMusicians[instr] !== true ? (selectedMusicians[instr]===n?'selected':'') : ''}>${n}</option>`).join('')}
+        ${names.map(n=>`<option value="${n}" ${selectedMusicians[instr]===n?'selected':''}>${n}</option>`).join('')}
       </select>`;
     assignFields.appendChild(div);
   });
-  
-  const selectedDate = document.getElementById("customDate").value;
-  if (selectedDate && lastDateMusicians[selectedDate] && Object.keys(lastDateMusicians[selectedDate]).length > 0) {
-    sameMusicianBtn.style.display = "block";
-  } else {
-    sameMusicianBtn.style.display = "none";
-  }
-  
   assignModal.style.display = "flex";
 }
 
@@ -478,73 +426,21 @@ assignBtn.onclick = () => {
   openAssignModal();
 };
 
-sameMusicianBtn.onclick = () => {
-  const selectedDate = document.getElementById("customDate").value;
-  
-  if (!selectedDate || !lastDateMusicians[selectedDate]) {
-    alert("No hay asignaciones previas para esta fecha.");
-    return;
-  }
-  
-  usingSameMusicians = true;
-  
-  instruments.forEach(instr => {
-    const sel = document.getElementById(`sel-${instr.replace(/\s+/g,'_')}`);
-    if (sel) {
-      sel.disabled = true;
-      sel.style.opacity = "0.6";
-      sel.style.cursor = "not-allowed";
-    }
-  });
-  
-  alert("✅ Mismos músicos seleccionados. Los campos están deshabilitados.");
-};
-
 document.getElementById("closeAssign").onclick = () => {
   assignModal.style.display = "none";
-  usingSameMusicians = false;
-  instruments.forEach(instr => {
-    const sel = document.getElementById(`sel-${instr.replace(/\s+/g,'_')}`);
-    if (sel) {
-      sel.disabled = false;
-      sel.style.opacity = "1";
-      sel.style.cursor = "pointer";
-    }
-  });
 };
 
 document.getElementById("saveAssign").onclick = () => {
-  const selectedDate = document.getElementById("customDate").value;
-  
-  if (usingSameMusicians) {
-    selectedMusicians = { __sameMusicians: true };
-  } else {
-    selectedMusicians = {};
-    instruments.forEach(instr=>{
-      const sel = document.getElementById(`sel-${instr.replace(/\s+/g,'_')}`);
-      if (sel && sel.value) {
-        selectedMusicians[instr] = sel.value;
-      }
-    });
-    
-    if (selectedDate && Object.keys(selectedMusicians).length > 0) {
-      lastDateMusicians[selectedDate] = {...selectedMusicians};
-    }
-  }
-  
-  usingSameMusicians = false;
-  assignModal.style.display = "none";
-  
-  instruments.forEach(instr => {
+  instruments.forEach(instr=>{
     const sel = document.getElementById(`sel-${instr.replace(/\s+/g,'_')}`);
     if (sel) {
-      sel.disabled = false;
-      sel.style.opacity = "1";
-      sel.style.cursor = "pointer";
+      const val = sel.value;
+      if (val) selectedMusicians[instr] = val;
+      else delete selectedMusicians[instr];
     }
   });
-  
-  alert("✅ Asignaciones guardadas correctamente.");
+  assignModal.style.display = "none";
+  alert("Asignaciones guardadas correctamente.");
 };
 
 const toneBtn = document.getElementById("toneBtn");
@@ -833,14 +729,7 @@ async function addSongToDOM(song, id) {
   tdChords.textContent = song.chords || "";
 
   const tdNote = document.createElement("td");
-  if (song.musicos && song.musicos.__sameMusicians) {
-    tdNote.textContent = "MISMOS MÚSICOS";
-    tdNote.style.fontWeight = "bold";
-    tdNote.style.color = "#FF9800";
-    tdNote.style.fontSize = "0.95em";
-  } else {
-    tdNote.textContent = song.musicos ? Object.entries(song.musicos).filter(([k]) => k !== '__sameMusicians').map(([k,v])=>`${k}: ${v}`).join('\n') : "";
-  }
+  tdNote.textContent = song.musicos ? Object.entries(song.musicos).map(([k,v])=>`${k}: ${v}`).join('\n') : "";
 
   tr.append(tdVideo, tdName, tdFile, tdChords, tdNote);
 
@@ -975,7 +864,6 @@ document.getElementById("addLine").onclick = async () => {
     alert("❌ Error: " + (err.message || "falló al guardar"));
   }
 };
-
 </script>
 
 <script>
