@@ -227,8 +227,6 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 const clearListBtn = document.getElementById("clearListBtn");
-  // asegurar que el botón esté oculto por defecto
-  clearListBtn.style.display = "none";
 
 function extractYouTubeID(url) {
   if (!url) return null;
@@ -261,7 +259,7 @@ function enterAsVisitor() {
   mainContent.classList.remove("hidden");
   lineForm.classList.add("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.style.display = "none";
+  clearListBtn.classList.add("hidden");
   renderSongs();
 }
 
@@ -272,7 +270,7 @@ function enterAsAdmin() {
   mainContent.classList.remove("hidden");
   lineForm.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.style.display = "block";
+  clearListBtn.classList.remove("hidden");
   renderSongs();
 }
 
@@ -382,7 +380,7 @@ logoutBtn.onclick = async () => {
     mainContent.classList.add("hidden");
     lineForm.classList.add("hidden");
     logoutBtn.classList.add("hidden");
-    clearListBtn.style.display = "none";
+    clearListBtn.classList.add("hidden");
     showOverlay();
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
