@@ -227,6 +227,8 @@ const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 const clearListBtn = document.getElementById("clearListBtn");
+  // asegurar que el botón esté oculto por defecto
+  clearListBtn.style.display = "none";
 
 function extractYouTubeID(url) {
   if (!url) return null;
@@ -259,7 +261,7 @@ function enterAsVisitor() {
   mainContent.classList.remove("hidden");
   lineForm.classList.add("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.classList.add("hidden");
+  clearListBtn.style.display = "none";
   renderSongs();
 }
 
@@ -270,7 +272,7 @@ function enterAsAdmin() {
   mainContent.classList.remove("hidden");
   lineForm.classList.remove("hidden");
   logoutBtn.classList.remove("hidden");
-  clearListBtn.classList.remove("hidden");
+  clearListBtn.style.display = "block";
   renderSongs();
 }
 
@@ -380,7 +382,7 @@ logoutBtn.onclick = async () => {
     mainContent.classList.add("hidden");
     lineForm.classList.add("hidden");
     logoutBtn.classList.add("hidden");
-    clearListBtn.classList.add("hidden");
+    clearListBtn.style.display = "none";
     showOverlay();
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
@@ -778,14 +780,15 @@ async function addSongToDOM(song, id) {
   const tdVideo = document.createElement("td");
   if (song.video) {
     const vid = extractYouTubeID(song.video);
-    // Mostrar iframe embebido en todos los dispositivos y forzar playsinline en móviles
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     if (vid) {
-      tdVideo.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?playsinline=1&modestbranding=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline style="width:100%;max-width:160px;height:90px;display:block;margin:0 auto;border-radius:6px;"></iframe>`;
+      tdVideo.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?playsinline=1&modestbranding=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline></iframe>`;
     } else {
-      tdVideo.innerHTML = "Link no válido";
+      tdVideo.innerHTML = vid ? `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
     }
   }
-const tdName = document.createElement("td");
+
+  const tdName = document.createElement("td");
   tdName.textContent = song.songName || "Sin nombre";
   tdName.style.fontWeight = "600";
   tdName.style.color = "#4A90E2";
