@@ -781,8 +781,19 @@ async function addSongToDOM(song, id) {
   if (song.video) {
     const vid = extractYouTubeID(song.video);
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (vid) {
-      tdVideo.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}?playsinline=1&modestbranding=1&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen playsinline></iframe>`;
+    if (isMobile && vid) {
+      const thumb = document.createElement('div');
+      thumb.className = 'video-thumb';
+      const link = document.createElement('a');
+      link.href = `https://youtu.be/${vid}`;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      const img = document.createElement('img');
+      img.src = `https://img.youtube.com/vi/${vid}/hqdefault.jpg`;
+      img.alt = 'Thumbnail';
+      link.appendChild(img);
+      thumb.appendChild(link);
+      tdVideo.appendChild(thumb);
     } else {
       tdVideo.innerHTML = vid ? `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
     }
