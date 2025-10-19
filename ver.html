@@ -34,14 +34,15 @@ a:hover{text-decoration:underline}
 #logoutBtn{position:absolute;top:15px;right:25px}
 #assignModal,#searchModal,#toneModal,#editModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:10010;padding:20px;box-sizing:border-box}
 #assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;z-index:10020}
-#assignContent{width:320px;max-height:80vh;overflow-y:auto}
+#assignContent{width:320px;display:flex;flex-direction:column;max-height:80vh}
 #searchContent{width:600px;max-height:80vh;overflow-y:auto}
 #toneContent{width:500px;max-height:500px;overflow-y:auto}
 #editContent{width:420px;max-width:100%;max-height:85vh;display:flex;flex-direction:column;gap:8px;padding:12px 14px}
-#assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px}
+#assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px;margin-top:0}
 .assign-item{margin:6px 0;display:flex;flex-direction:column}
 .assign-item label{font-weight:bold;margin-bottom:3px;font-size:0.85em}
 .assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;width:100%;box-sizing:border-box}
+#assignFieldsContainer{flex:1;overflow-y:auto;margin-bottom:10px;padding-right:5px}
 td:nth-child(5){white-space:pre-line;text-align:left;font-size:0.9em}
 .video-result{display:flex;align-items:flex-start;gap:15px;border-bottom:1px solid #ddd;padding:15px 10px;transition:background 0.2s;background:#fff}
 .video-result:hover{background:#f8f9fa}
@@ -93,9 +94,10 @@ body.overlayLocked{overflow:hidden;height:100vh}
 #clearListBtn:hover{background-color:#c9302c;box-shadow:0 4px 12px rgba(217,83,79,0.4)}
 #accessOverlay.fadeOut{animation:fadeOut 1.4s ease forwards}
 @keyframes fadeOut{from{opacity:1}to{opacity:0;visibility:hidden}}
-.same-musicians-btn{width:100%;background:#FF9800;color:white;margin:12px 0 12px 0;padding:10px;border-radius:5px;cursor:pointer;font-weight:600;border:none;transition:background-color 0.3s;font-size:0.9em}
+.same-musicians-btn{width:100%;background:#FF9800;color:white;margin:8px 0 0 0;padding:10px;border-radius:5px;cursor:pointer;font-weight:600;border:none;transition:background-color 0.3s;font-size:0.9em;flex-shrink:0}
 .same-musicians-btn:hover{background-color:#E68900}
-#assignFieldsContainer{max-height:35vh;overflow-y:auto;margin-bottom:10px;padding-right:5px}
+.assign-buttons-container{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;flex-shrink:0}
+.assign-buttons-container button{flex:1;min-width:100px}
 @media (max-width:520px){
   table{min-width:700px;table-layout:auto}
   th,td{padding:8px;border:1px solid #ddd;font-size:0.92em}
@@ -179,7 +181,21 @@ body.overlayLocked{overflow:hidden;height:100vh}
 </div>
 
 <div id="toneModal"><div id="toneContent"><h3>Seleccionar Tono</h3><div id="toneOptions" class="tone-grid"></div><div style="text-align:center;margin-top:12px"><button type="button" id="closeTone">Cerrar</button></div></div></div>
-<div id="assignModal"><div id="assignContent"><h3>Asignar Músicos</h3><div id="assignFieldsContainer"><div id="assignFields"></div></div><button type="button" id="sameMusicianBtn" class="same-musicians-btn" style="display:none;">👥 Mismos Músicos</button><div style="text-align:center;margin-top:10px"><button type="button" id="saveAssign">Guardar</button><button type="button" id="closeAssign">Cerrar</button></div></div></div>
+
+<div id="assignModal">
+  <div id="assignContent">
+    <h3>Asignar Músicos</h3>
+    <div id="assignFieldsContainer">
+      <div id="assignFields"></div>
+    </div>
+    <button type="button" id="sameMusicianBtn" class="same-musicians-btn" style="display:none;">👥 Mismos Músicos</button>
+    <div class="assign-buttons-container">
+      <button type="button" id="saveAssign">Guardar</button>
+      <button type="button" id="closeAssign">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <div id="searchModal">
   <div id="searchContent">
     <h3>Buscar Video</h3>
@@ -188,6 +204,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
     <div style="text-align:center;margin-top:10px"><button type="button" id="closeSearch">Cerrar</button></div>
   </div>
 </div>
+
 <div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input type="url" id="editVideo"><label>Nombre Canción</label><input type="text" id="editSongName"><label>Cifrado PDF</label><button type="button" id="editUploadBtn" style="width:100%;background:#28a745;padding:8px;margin:5px 0">📤 Cambiar PDF</button><div id="editFileUploaded" class="file-uploaded"></div><label>Tono</label><input type="text" id="editChords"><div id="editAssignFields"></div><label>Fecha</label><input type="date" id="editDate"></div><div class="edit-footer"><button type="button" id="saveEdit">Guardar</button><button type="button" id="cancelEdit">Cancelar</button></div></div></div>
 
 <div id="footer">
@@ -658,10 +675,7 @@ searchFilter.addEventListener('input', (e) => {
     const video = (song.video || '').toLowerCase();
     const chords = (song.chords || '').toLowerCase();
     
-    return songName.includes(query) || 
-           date.includes(query) || 
-           video.includes(query) || 
-           chords.includes(query);
+    return songName.includes(query) || date.includes(query) || video.includes(query) || chords.includes(query);
   });
   
   displayFilteredSongs(filtered);
@@ -675,20 +689,16 @@ searchVideoBtn.onclick = async () => {
   try {
     const snap = await getDocs(collection(db, "songs"));
     allSongs = [];
-    
     snap.forEach(docSnap => {
       const song = docSnap.data();
       allSongs.push({ id: docSnap.id, data: song });
     });
-    
     allSongs.sort((a, b) => {
       const dateA = a.data.date || '';
       const dateB = b.data.date || '';
       return dateB.localeCompare(dateA);
     });
-    
     displayFilteredSongs(allSongs);
-    
   } catch (err) {
     console.error(err);
     videoList.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando canciones</p>";
@@ -736,27 +746,14 @@ document.getElementById("cancelEdit").onclick = () => {
 editModal.addEventListener('click', (e) => {
   if (e.target === editModal) {
     editModal.style.display = 'none';
-    currentEditId = null;
-    currentEditSong = null;
-    window.editUploadedFileData = null;
-    document.getElementById('editFileUploaded').style.display = 'none';
   }
 });
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    if (editModal.style.display === 'flex') {
-      editModal.style.display = 'none';
-      currentEditId = null;
-      currentEditSong = null;
-      window.editUploadedFileData = null;
-      document.getElementById('editFileUploaded').style.display = 'none';
-    }
+    if (editModal.style.display === 'flex') editModal.style.display = 'none';
     if (assignModal.style.display === 'flex') assignModal.style.display = 'none';
-    if (searchModal.style.display === 'flex') {
-      searchModal.style.display = 'none';
-      searchFilter.value = '';
-    }
+    if (searchModal.style.display === 'flex') searchModal.style.display = 'none';
     if (toneModal.style.display === 'flex') toneModal.style.display = 'none';
   }
 });
@@ -804,10 +801,8 @@ async function addSongToDOM(song, id) {
 
   const tdFile = document.createElement("td");
   const fileURL = song.fileURL || "";
-
   if (fileURL) {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
     if (isMobile) {
       const btn = document.createElement('a');
       btn.href = fileURL;
@@ -816,7 +811,6 @@ async function addSongToDOM(song, id) {
       btn.rel = 'noopener noreferrer';
       btn.style.cssText = 'display:inline-block;padding:10px 16px;background:#28a745;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:0.9em;';
       btn.textContent = '📥 Descargar PDF';
-      
       tdFile.style.textAlign = 'center';
       tdFile.appendChild(btn);
     } else {
@@ -845,7 +839,6 @@ async function addSongToDOM(song, id) {
   if (loggedIn) {
     const tdActions = document.createElement("td");
     tdActions.classList.add("actions");
-
     const edit = document.createElement("button");
     edit.textContent = "Modificar";
     edit.classList.add("edit");
@@ -861,7 +854,6 @@ async function addSongToDOM(song, id) {
       buildEditAssignFields(song.musicos || {});
       editModal.style.display = "flex";
     };
-
     tdActions.append(edit);
     tr.append(tdActions);
   }
@@ -892,13 +884,10 @@ document.getElementById("saveEdit").onclick = async () => {
 
     if (newVideo) updates.video = newVideo;
     else if (currentEditSong?.video) updates.video = currentEditSong.video;
-
     if (newSongName) updates.songName = newSongName;
     else if (currentEditSong?.songName) updates.songName = currentEditSong.songName;
-
     if (newChords) updates.chords = newChords;
     else if (currentEditSong?.chords) updates.chords = currentEditSong.chords;
-
     if (newDate) updates.date = newDate;
     else if (currentEditSong?.date) updates.date = currentEditSong.date;
 
@@ -913,11 +902,9 @@ document.getElementById("saveEdit").onclick = async () => {
     if (window.editUploadedFileData) {
       updates.fileURL = window.editUploadedFileData.fileURL;
       updates.fileName = window.editUploadedFileData.fileName;
-    } else {
-      if (currentEditSong?.fileURL) {
-        updates.fileURL = currentEditSong.fileURL;
-        if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
-      }
+    } else if (currentEditSong?.fileURL) {
+      updates.fileURL = currentEditSong.fileURL;
+      if (currentEditSong.fileName) updates.fileName = currentEditSong.fileName;
     }
 
     await updateDoc(doc(db, "songs", currentEditId), updates);
