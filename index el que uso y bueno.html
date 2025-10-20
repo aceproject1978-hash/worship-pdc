@@ -39,13 +39,13 @@ a:hover{text-decoration:underline}
 .calendar-block{border:2px solid #4A90E2;border-radius:8px;background:#fff;margin-bottom:15px;box-shadow:0 0 8px rgba(74,144,226,0.1);padding:0;overflow:hidden}
 .calendar-date{background:#4A90E2;color:white;padding:5px;border-radius:8px 8px 0 0;font-weight:600;text-align:center;font-size:1em}
 #logoutBtn{position:absolute;top:15px;right:25px}
-#assignModal,#searchModal,#toneModal,#editModal,#pdfSearchModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:10010;padding:20px;box-sizing:border-box}
-#assignContent,#searchContent,#toneContent,#editContent,#pdfSearchContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;z-index:10020}
+#assignModal,#searchModal,#toneModal,#editModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:10010;padding:20px;box-sizing:border-box}
+#assignContent,#searchContent,#toneContent,#editContent{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,0.25);box-sizing:border-box;z-index:10020}
 #assignContent{width:320px;max-height:80vh;overflow-y:auto}
-#searchContent,#pdfSearchContent{width:600px;max-height:80vh;overflow-y:auto}
+#searchContent{width:600px;max-height:80vh;overflow-y:auto}
 #toneContent{width:500px;max-height:500px;overflow-y:auto}
 #editContent{width:420px;max-width:100%;max-height:85vh;display:flex;flex-direction:column;gap:8px;padding:12px 14px}
-#assignContent h3,#searchContent h3,#toneContent h3,#editContent h3,#pdfSearchContent h3{color:#4A90E2;text-align:center;margin-bottom:8px}
+#assignContent h3,#searchContent h3,#toneContent h3,#editContent h3{color:#4A90E2;text-align:center;margin-bottom:8px}
 .assign-item{margin:6px 0;display:flex;flex-direction:column}
 .assign-item label{font-weight:bold;margin-bottom:3px;font-size:0.85em}
 .assign-item select{padding:4px;border:1px solid #ccc;border-radius:5px;font-size:0.85em;width:100%;box-sizing:border-box}
@@ -58,12 +58,6 @@ td:nth-child(5){white-space:pre-line;text-align:left;font-size:0.9em}
 .video-result .info .date{color:#333;font-weight:600;font-size:0.9em;margin:0}
 .video-result .info .link{color:#666;font-size:0.8em;word-break:break-all;margin:0;line-height:1.4}
 .video-result button{background:#28a745;padding:8px 20px;font-size:0.85em;flex-shrink:0;border-radius:6px;font-weight:600;align-self:flex-start}
-.pdf-result{display:flex;align-items:center;gap:15px;border-bottom:1px solid #ddd;padding:15px 10px;transition:background 0.2s;background:#fff}
-.pdf-result:hover{background:#f8f9fa}
-.pdf-result .info{flex:1;text-align:left;display:flex;flex-direction:column;gap:6px}
-.pdf-result .info .pdfname{color:#4A90E2;font-weight:700;font-size:1.05em;margin:0}
-.pdf-result .info .pdflink{color:#666;font-size:0.8em;word-break:break-all;margin:0;line-height:1.4}
-.pdf-result button{background:#28a745;padding:8px 20px;font-size:0.85em;flex-shrink:0;border-radius:6px;font-weight:600}
 .tone-btn{margin-left:4px;padding:4px 7px;font-size:0.9em;border-radius:6px;background:#4A90E2;color:#fff;cursor:pointer;border:none}
 .tone-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
 .tone-option{display:flex;align-items:center;justify-content:center;padding:10px;background:#f0f0f0;border-radius:5px;cursor:pointer;font-weight:600;font-size:0.9em;transition:all 0.2s}
@@ -175,8 +169,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
           <td><div style="display:flex;align-items:center;gap:5px"><input type="url" id="videoURL" placeholder="https://..."><button type="button" id="searchVideoBtn">Buscar</button></div></td>
           <td><input type="text" id="songName" placeholder="Nombre de la canción"></td>
           <td>
-            <button type="button" id="uploadBtn" style="width:95%;background:#28a745;padding:8px;margin-bottom:5px">📤 Subir PDF</button>
-            <button type="button" id="searchPdfBtn" style="width:95%;background:#4A90E2;padding:8px">🔍 Buscar PDF</button>
+            <button type="button" id="uploadBtn" style="width:95%;background:#28a745;padding:8px">📤 Subir PDF</button>
             <div id="fileUploaded" class="file-uploaded"></div>
           </td>
           <td><div style="display:flex;align-items:center;gap:5px;justify-content:center"><input type="text" id="chords" placeholder="G - D - Em"><button type="button" id="toneBtn" class="tone-btn">🎵</button></div></td>
@@ -202,15 +195,7 @@ body.overlayLocked{overflow:hidden;height:100vh}
     <div style="text-align:center;margin-top:10px"><button type="button" id="closeSearch">Cerrar</button></div>
   </div>
 </div>
-<div id="pdfSearchModal">
-  <div id="pdfSearchContent">
-    <h3>Buscar PDF</h3>
-    <input type="text" id="pdfSearchFilter" class="search-filter" placeholder="🔍 Buscar por nombre de canción...">
-    <div id="pdfList"></div>
-    <div style="text-align:center;margin-top:10px"><button type="button" id="closePdfSearch">Cerrar</button></div>
-  </div>
-</div>
-<div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input type="url" id="editVideo"><label>Nombre Canción</label><input type="text" id="editSongName"><label>Cifrado PDF</label><button type="button" id="editUploadBtn" style="width:100%;background:#28a745;padding:8px;margin:5px 0 5px 0">📤 Cambiar PDF</button><button type="button" id="editSearchPdfBtn" style="width:100%;background:#4A90E2;padding:8px;margin:0 0 5px 0">🔍 Buscar PDF</button><div id="editFileUploaded" class="file-uploaded"></div><label>Tono</label><input type="text" id="editChords"><div id="editAssignFields"></div><label>Fecha</label><input type="date" id="editDate"></div><div class="edit-footer"><button type="button" id="saveEdit">Guardar</button><button type="button" id="cancelEdit">Cancelar</button></div></div></div>
+<div id="editModal"><div id="editContent"><h3>Modificar Canción</h3><div class="edit-body"><label>Video YouTube</label><input type="url" id="editVideo"><label>Nombre Canción</label><input type="text" id="editSongName"><label>Cifrado PDF</label><button type="button" id="editUploadBtn" style="width:100%;background:#28a745;padding:8px;margin:5px 0">📤 Cambiar PDF</button><div id="editFileUploaded" class="file-uploaded"></div><label>Tono</label><input type="text" id="editChords"><div id="editAssignFields"></div><label>Fecha</label><input type="date" id="editDate"></div><div class="edit-footer"><button type="button" id="saveEdit">Guardar</button><button type="button" id="cancelEdit">Cancelar</button></div></div></div>
 
 <div id="footer">
   Desarrollado por Moisés Morales | Worship PDC © 2025
@@ -243,17 +228,14 @@ let currentUser = null;
 window.uploadedFileData = null;
 window.editUploadedFileData = null;
 let allSongs = [];
-let isEditMode = false;
 
 const accessOverlay = document.getElementById("accessOverlay");
 const mainContent = document.getElementById("mainContent");
 const lineForm = document.getElementById("lineForm");
 const logoutBtn = document.getElementById("logoutBtn");
 const clearListBtn = document.getElementById("clearListBtn");
-const pdfSearchModal = document.getElementById("pdfSearchModal");
-const pdfList = document.getElementById("pdfList");
-const pdfSearchFilter = document.getElementById("pdfSearchFilter");
-clearListBtn.style.display = "none";
+  // asegurar que el botón esté oculto por defecto
+  clearListBtn.style.display = "none";
 
 function extractYouTubeID(url) {
   if (!url) return null;
@@ -727,152 +709,6 @@ document.getElementById("closeSearch").onclick = () => {
   searchFilter.value = "";
 };
 
-function displayFilteredPdfs(songs) {
-  pdfList.innerHTML = "";
-  
-  const songsWithPdf = songs.filter(item => item.data.fileURL);
-  
-  if (songsWithPdf.length === 0) {
-    pdfList.innerHTML = "<p style='text-align:center;color:#666;padding:20px;'>No se encontraron PDFs.</p>";
-    return;
-  }
-  
-  songsWithPdf.forEach(item => {
-    const song = item.data;
-    
-    const div = document.createElement("div");
-    div.classList.add("pdf-result");
-    
-    const infoDiv = document.createElement("div");
-    infoDiv.className = "info";
-    
-    const nameP = document.createElement("p");
-    nameP.className = "pdfname";
-    nameP.textContent = song.songName || '⚠️ Sin nombre';
-    
-    const fileP = document.createElement("p");
-    fileP.className = "pdflink";
-    fileP.textContent = song.fileName || 'PDF disponible';
-    
-    infoDiv.appendChild(nameP);
-    infoDiv.appendChild(fileP);
-    
-    div.appendChild(infoDiv);
-    
-    const selBtn = document.createElement("button");
-    selBtn.type = "button";
-    selBtn.textContent = "Seleccionar";
-    selBtn.onclick = () => {
-      if (isEditMode) {
-        window.editUploadedFileData = {
-          fileName: song.fileName,
-          fileURL: song.fileURL
-        };
-        document.getElementById('editFileUploaded').textContent = '✅ ' + song.fileName;
-        document.getElementById('editFileUploaded').style.display = 'block';
-        document.getElementById('editFileUploaded').style.color = '#28a745';
-      } else {
-        window.uploadedFileData = {
-          fileName: song.fileName,
-          fileURL: song.fileURL
-        };
-        document.getElementById('fileUploaded').textContent = '✅ ' + song.fileName;
-        document.getElementById('fileUploaded').style.display = 'block';
-        document.getElementById('fileUploaded').style.color = '#28a745';
-      }
-      pdfSearchModal.style.display = "none";
-      pdfSearchFilter.value = "";
-    };
-    div.appendChild(selBtn);
-    
-    pdfList.appendChild(div);
-  });
-}
-
-pdfSearchFilter.addEventListener('input', (e) => {
-  const query = e.target.value.toLowerCase().trim();
-  
-  if (!query) {
-    displayFilteredPdfs(allSongs);
-    return;
-  }
-  
-  const filtered = allSongs.filter(item => {
-    const song = item.data;
-    if (!song.fileURL) return false;
-    
-    const songName = (song.songName || '').toLowerCase();
-    const fileName = (song.fileName || '').toLowerCase();
-    
-    return songName.includes(query) || fileName.includes(query);
-  });
-  
-  displayFilteredPdfs(filtered);
-});
-
-document.getElementById("searchPdfBtn").onclick = async () => {
-  isEditMode = false;
-  pdfSearchModal.style.display = "flex";
-  pdfList.innerHTML = "<p style='text-align:center;'>Cargando PDFs...</p>";
-  pdfSearchFilter.value = "";
-  
-  try {
-    const snap = await getDocs(collection(db, "songs"));
-    allSongs = [];
-    
-    snap.forEach(docSnap => {
-      const song = docSnap.data();
-      allSongs.push({ id: docSnap.id, data: song });
-    });
-    
-    allSongs.sort((a, b) => {
-      const dateA = a.data.date || '';
-      const dateB = b.data.date || '';
-      return dateB.localeCompare(dateA);
-    });
-    
-    displayFilteredPdfs(allSongs);
-    
-  } catch (err) {
-    console.error(err);
-    pdfList.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando PDFs</p>";
-  }
-};
-
-document.getElementById("editSearchPdfBtn").onclick = async () => {
-  isEditMode = true;
-  pdfSearchModal.style.display = "flex";
-  pdfList.innerHTML = "<p style='text-align:center;'>Cargando PDFs...</p>";
-  pdfSearchFilter.value = "";
-  
-  try {
-    const snap = await getDocs(collection(db, "songs"));
-    allSongs = [];
-    
-    snap.forEach(docSnap => {
-      const song = docSnap.data();
-      allSongs.push({ id: docSnap.id, data: song });
-    });
-    
-    allSongs.sort((a, b) => {
-      const dateA = a.data.date || '';
-      const dateB = b.data.date || '';
-      return dateB.localeCompare(dateA);
-    });
-    
-    displayFilteredPdfs(allSongs);
-    
-  } catch (err) {
-    console.error(err);
-    pdfList.innerHTML = "<p style='text-align:center;color:#D9534F;'>Error cargando PDFs</p>";
-  }
-};
-
-document.getElementById("closePdfSearch").onclick = () => {
-  pdfSearchModal.style.display = "none";
-  pdfSearchFilter.value = "";
-};
-
 const editModal = document.getElementById("editModal");
 const editSongName = document.getElementById("editSongName");
 const editVideo = document.getElementById("editVideo");
@@ -930,10 +766,6 @@ window.addEventListener('keydown', (e) => {
       searchModal.style.display = 'none';
       searchFilter.value = '';
     }
-    if (pdfSearchModal.style.display === 'flex') {
-      pdfSearchModal.style.display = 'none';
-      pdfSearchFilter.value = '';
-    }
     if (toneModal.style.display === 'flex') toneModal.style.display = 'none';
   }
 });
@@ -970,7 +802,7 @@ async function addSongToDOM(song, id) {
       thumb.appendChild(link);
       tdVideo.appendChild(thumb);
     } else {
-      tdVideo.innerHTML = vid ? `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>` : "Linkno válido";
+      tdVideo.innerHTML = vid ? `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
     }
   }
 
