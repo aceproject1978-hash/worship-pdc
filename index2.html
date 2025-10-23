@@ -939,31 +939,14 @@ window.addEventListener('keydown', (e) => {
 });
 
 async function addSongToDOM(song, id) {
-  const container = document.getElementById("calendarContainer");
   let block = document.querySelector(`.calendar-block[data-date='${song.date}']`);
-  
   if (!block) {
     block = document.createElement("div");
     block.classList.add("calendar-block");
     block.dataset.date = song.date;
     block.innerHTML = `<div class="calendar-date">${song.date}</div>
       <div class="table-container"><table><thead><tr><th>Video</th><th>Nombre</th><th>Cifrado PDF</th><th>Tono</th><th>Músicos</th>${loggedIn?"<th>Acciones</th>":""}</tr></thead><tbody></tbody></table></div>`;
-    
-    const allBlocks = Array.from(container.querySelectorAll('.calendar-block'));
-    let inserted = false;
-    
-    for (let i = 0; i < allBlocks.length; i++) {
-      const existingDate = allBlocks[i].dataset.date;
-      if (song.date > existingDate) {
-        container.insertBefore(block, allBlocks[i]);
-        inserted = true;
-        break;
-      }
-    }
-    
-    if (!inserted) {
-      container.appendChild(block);
-    }
+    document.getElementById("calendarContainer").appendChild(block);
   }
 
   const tbody = block.querySelector("tbody");
@@ -987,7 +970,7 @@ async function addSongToDOM(song, id) {
       thumb.appendChild(link);
       tdVideo.appendChild(thumb);
     } else {
-      tdVideo.innerHTML = vid ? `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>` : "Link no válido";
+      tdVideo.innerHTML = vid ? `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>` : "Linkno válido";
     }
   }
 
